@@ -24,22 +24,29 @@ import {
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [siteData, setSiteData] = useState({
-    phone: '(34) 3251-2055',
-    whatsapp: '(34) 3251-2055',
-    address: 'Avenida Joaquim Ribeiro de Gouveia, 1969 – Bairro Amoreiras, Santa Vitória – MG',
+    phone: 'Admin (34) 3251-2055',
+    whatsapp: 'Admin (34) 93251-2055',
+    address: 'Admin Avenida Joaquim Ribeiro de Gouveia, 1969 – Bairro Amoreiras, Santa Vitória – MG',
     workingHours: {
-      weekdays: 'Segunda a Sexta: 07h às 17h',
-      saturday: 'Sábado: 07h às 11h'
+      weekdays: 'Admin Segunda a Sexta: 07h às 17h',
+      saturday: 'Admin Sábado: 07h às 11h'
     },
     services: [
-      'Análises clínicas',
-      'Coleta domiciliar',
-      'Convênios médicos'
+      'Admin Análises clínicas',
+      'Admin Coleta domiciliar',
+      'Admin Convênios médicos'
     ],
     socialMedia: {
-      instagram: '',
-      facebook: ''
-    }
+      instagram: 'admin_insta',
+      facebook: 'admin_fb'
+    },
+    homeTitle: 'Admin Home Title Default',
+    homeSubtitle: 'Admin Home Subtitle Default',
+    aboutText: 'Admin About Text Default',
+    metaTitle: 'Admin Meta Title Default',
+    metaDescription: 'Admin Meta Description Default',
+    keywords: 'admin, default, keywords',
+    analyticsId: 'G-ADMINXXXXXX',
   });
 
   useEffect(() => {
@@ -258,7 +265,8 @@ const AdminDashboard = () => {
                   <Label htmlFor="homeTitle">Título da Página Inicial</Label>
                   <Input
                     id="homeTitle"
-                    defaultValue="Excelência em Análises Clínicas"
+                    value={siteData.homeTitle}
+                    onChange={(e) => setSiteData(prev => ({...prev, homeTitle: e.target.value}))}
                     placeholder="Digite o título principal"
                   />
                 </div>
@@ -267,7 +275,8 @@ const AdminDashboard = () => {
                   <Label htmlFor="homeSubtitle">Subtítulo da Página Inicial</Label>
                   <Textarea
                     id="homeSubtitle"
-                    defaultValue="Tecnologia de ponta, precisão em cada resultado e atendimento humanizado para cuidar da sua saúde com a confiança que você merece."
+                    value={siteData.homeSubtitle}
+                    onChange={(e) => setSiteData(prev => ({...prev, homeSubtitle: e.target.value}))}
                     rows={3}
                   />
                 </div>
@@ -276,7 +285,8 @@ const AdminDashboard = () => {
                   <Label htmlFor="aboutText">Texto Sobre Nós</Label>
                   <Textarea
                     id="aboutText"
-                    defaultValue="Há mais de 15 anos cuidando da saúde da comunidade de Santa Vitória-MG com excelência, tecnologia de ponta e atendimento humanizado."
+                    value={siteData.aboutText}
+                    onChange={(e) => setSiteData(prev => ({...prev, aboutText: e.target.value}))}
                     rows={4}
                   />
                 </div>
@@ -308,7 +318,7 @@ const AdminDashboard = () => {
                         onChange={(e) => {
                           const newServices = [...siteData.services];
                           newServices[index] = e.target.value;
-                          setSiteData({...siteData, services: newServices});
+                          setSiteData(prev => ({...prev, services: newServices}));
                         }}
                       />
                       <Button variant="outline" size="sm" className="text-red-600">
@@ -316,7 +326,16 @@ const AdminDashboard = () => {
                       </Button>
                     </div>
                   ))}
-                  <Button variant="outline" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      setSiteData(prev => ({
+                        ...prev,
+                        services: [...prev.services, ''] // Add a new empty service
+                      }));
+                    }}
+                  >
                     Adicionar Novo Serviço
                   </Button>
                 </div>
@@ -352,7 +371,8 @@ const AdminDashboard = () => {
                   <Label htmlFor="metaTitle">Título da Página (Meta Title)</Label>
                   <Input
                     id="metaTitle"
-                    defaultValue="Arantes Medicina Laboratorial - Análises Clínicas de Excelência"
+                    value={siteData.metaTitle}
+                    onChange={(e) => setSiteData(prev => ({...prev, metaTitle: e.target.value}))}
                     maxLength={60}
                   />
                   <p className="text-xs text-gray-500">Máximo 60 caracteres</p>
@@ -362,7 +382,8 @@ const AdminDashboard = () => {
                   <Label htmlFor="metaDescription">Descrição da Página (Meta Description)</Label>
                   <Textarea
                     id="metaDescription"
-                    defaultValue="Laboratório de análises clínicas em Santa Vitória-MG. Exames precisos, tecnologia de ponta e atendimento humanizado. Coleta domiciliar disponível."
+                    value={siteData.metaDescription}
+                    onChange={(e) => setSiteData(prev => ({...prev, metaDescription: e.target.value}))}
                     maxLength={160}
                     rows={3}
                   />
@@ -373,15 +394,18 @@ const AdminDashboard = () => {
                   <Label htmlFor="keywords">Palavras-chave</Label>
                   <Input
                     id="keywords"
-                    defaultValue="laboratório, análises clínicas, exames, santa vitória, coleta domiciliar, resultados online"
+                    value={siteData.keywords}
+                    onChange={(e) => setSiteData(prev => ({...prev, keywords: e.target.value}))}
                     placeholder="Separe as palavras-chave por vírgula"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="analytics">Google Analytics ID</Label>
+                  <Label htmlFor="analyticsId">Google Analytics ID</Label>
                   <Input
-                    id="analytics"
+                    id="analyticsId"
+                    value={siteData.analyticsId}
+                    onChange={(e) => setSiteData(prev => ({...prev, analyticsId: e.target.value}))}
                     placeholder="G-XXXXXXXXXX"
                   />
                 </div>

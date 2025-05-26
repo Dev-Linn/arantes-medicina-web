@@ -28,6 +28,7 @@ interface IndexProps {
 }
 
 const Index = ({ siteData }: IndexProps) => {
+  console.log('Index.tsx received siteData prop:', siteData);
   // Helper to format phone for tel: links
 
   const formatPhoneNumber = (phone: string) => (phone || '').replace(/\D/g, '');

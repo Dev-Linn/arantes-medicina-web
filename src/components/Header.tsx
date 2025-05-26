@@ -15,6 +15,7 @@ interface HeaderProps {
 }
 
 const Header = ({ siteData }: HeaderProps) => {
+  console.log('Header.tsx received siteData prop:', siteData);
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
