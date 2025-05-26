@@ -1,112 +1,45 @@
 
-import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Phone, Clock, MessageCircle, Mail, Navigation } from 'lucide-react';
 
-const initialDisplayData = {
-  phone: '(00) 0000-0000',
-  whatsapp: '00000000000', // Expected to be digits for wa.me link
-  address: 'Endereço Padrão, 123 – Bairro, Cidade – UF',
+interface SiteDataForContact {
+  phone: string;
+  whatsapp: string;
+  address: string;
   workingHours: {
-    weekdays: 'Segunda a Sexta: 00h às 00h',
-    saturday: 'Sábado: 00h às 00h'
-  },
-  services: [], // Not directly used here but part of the structure
-  socialMedia: { instagram: '#', facebook: '#' },
-  homeTitle: '',
-  homeSubtitle: '',
-  aboutText: '',
-};
+    weekdays: string;
+    saturday: string;
+  };
+  // Add other fields from initialSiteDataObject if Contact page needs them
+}
 
-const Contact = () => {
-  const [displaySiteData, setDisplaySiteData] = useState({
-    phone: initialDisplayData.phone,
-    whatsapp: initialDisplayData.whatsapp,
-    address: initialDisplayData.address,
-    workingHours: initialDisplayData.workingHours,
-  });
+interface ContactProps {
+  siteData: SiteDataForContact;
+}
 
-  useEffect(() => {
-    const savedData = localStorage.getItem('arantesSiteConfig');
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        setDisplaySiteData(prevData => ({
-          ...prevData,
-          phone: parsedData.phone || prevData.phone,
-          whatsapp: parsedData.whatsapp || prevData.whatsapp,
-          address: parsedData.address || prevData.address,
-          workingHours: {
-            ...prevData.workingHours,
-            ...(parsedData.workingHours || {}),
-          },
-        }));
-      } catch (error) {
-        console.error("Failed to parse site data from localStorage for Contact page", error);
-      }
-    }
-  }, []);
-
-  // Effect for real-time updates
-  useEffect(() => {
-    const handleDataUpdate = () => {
-      console.log('Contact.tsx: siteDataUpdated event received');
-      const savedData = localStorage.getItem('arantesSiteConfig');
-      if (savedData) {
-        try {
-          const parsedData = JSON.parse(savedData);
-          setDisplaySiteData(prevData => ({
-            ...initialDisplayData, // Start with full defaults
-            ...parsedData,
-            workingHours: {
-              ...initialDisplayData.workingHours,
-              ...(parsedData.workingHours || {}),
-            },
-            // Ensure other fields from initialDisplayData are preserved if not in parsedData
-            socialMedia: {
-                ...initialDisplayData.socialMedia,
-                ...(parsedData.socialMedia || {}),
-            },
-            services: parsedData.services || initialDisplayData.services,
-            homeTitle: parsedData.homeTitle || initialDisplayData.homeTitle,
-            homeSubtitle: parsedData.homeSubtitle || initialDisplayData.homeSubtitle,
-            aboutText: parsedData.aboutText || initialDisplayData.aboutText,
-          }));
-        } catch (error) {
-          console.error("Contact.tsx: Failed to parse updated site data from localStorage", error);
-          setDisplaySiteData(initialDisplayData); // Reset to a consistent default state
-        }
-      }
-    };
-
-    window.addEventListener('siteDataUpdated', handleDataUpdate);
-    return () => {
-      window.removeEventListener('siteDataUpdated', handleDataUpdate);
-    };
-  }, []);
-
-  const formatPhoneNumber = (phone: string) => phone.replace(/\D/g, '');
+const Contact = ({ siteData }: ContactProps) => {
+  const formatPhoneNumber = (phone: string) => (phone || '').replace(/\D/g, '');
 
   const formatWhatsAppLink = (whatsapp: string, message?: string) => {
-    const digits = whatsapp.replace(/\D/g, '');
+    const digits = (whatsapp || '').replace(/\D/g, '');
     const baseLink = digits.startsWith('55') && digits.length > 10 ? `https://wa.me/${digits}` : `https://wa.me/55${digits}`;
     return message ? `${baseLink}?text=${encodeURIComponent(message)}` : baseLink;
   };
   
   const openMaps = () => {
-    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displaySiteData.address)}`;
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(siteData.address || '')}`;
     window.open(url, '_blank');
   };
 
   const openWhatsApp = (message?: string) => {
     const defaultMessage = "Olá! Gostaria de mais informações sobre os serviços do laboratório Arantes.";
-    const url = formatWhatsAppLink(displaySiteData.whatsapp, message || defaultMessage);
+    const url = formatWhatsAppLink(siteData.whatsapp || '', message || defaultMessage);
     window.open(url, '_blank');
   };
   
   // Prepare address display (simple split by comma for now, can be enhanced)
-  const addressParts = displaySiteData.address.split(', ');
+  const addressParts = (siteData.address || 'Endereço Padrão').split(', ');
 
 
   return (
@@ -156,7 +89,7 @@ const Contact = () => {
                           {addressParts.map((part, index) => (
                             <span key={index}>{part}<br /></span>
                           ))}
-                          {addressParts.length === 1 && <span>{displaySiteData.address}</span>} {/* Fallback if no commas */}
+                          {addressParts.length === 1 && <span>{siteData.address || 'Endereço Padrão'}</span>} {/* Fallback if no commas */}
                         </div>
                         <Button 
                           onClick={openMaps}
@@ -181,8 +114,8 @@ const Contact = () => {
                       </div>
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">Telefone</h3>
-                        <p className="text-gray-600 mb-3">{displaySiteData.phone}</p>
-                        <a href={`tel:${formatPhoneNumber(displaySiteData.phone)}`}>
+                        <p className="text-gray-600 mb-3">{siteData.phone || '(00) 0000-0000'}</p>
+                        <a href={`tel:${formatPhoneNumber(siteData.phone)}`}>
                           <Button 
                             size="sm" 
                             className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
@@ -204,7 +137,7 @@ const Contact = () => {
                       </div>
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">WhatsApp</h3>
-                        <p className="text-gray-600 mb-3">{displaySiteData.whatsapp}</p>
+                        <p className="text-gray-600 mb-3">{siteData.whatsapp || '(00) 0000-0000'}</p>
                         <Button 
                           onClick={() => openWhatsApp()}
                           size="sm" 
@@ -230,11 +163,11 @@ const Contact = () => {
                         <div className="space-y-2 text-gray-600">
                           <div className="flex justify-between">
                             <span className="font-medium">Segunda a Sexta:</span>
-                            <span>{displaySiteData.workingHours.weekdays.replace('Segunda a Sexta: ', '')}</span>
+                            <span>{(siteData.workingHours?.weekdays || '00h às 00h').replace('Segunda a Sexta: ', '')}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="font-medium">Sábado:</span>
-                            <span>{displaySiteData.workingHours.saturday.replace('Sábado: ', '')}</span>
+                            <span>{(siteData.workingHours?.saturday || '00h às 00h').replace('Sábado: ', '')}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="font-medium">Domingo:</span>
@@ -326,9 +259,9 @@ const Contact = () => {
                 <p className="text-gray-600 mb-6">
                   Ligue para nosso atendimento e agende seus exames de forma rápida
                 </p>
-                <a href={`tel:${formatPhoneNumber(displaySiteData.phone)}`}>
+                <a href={`tel:${formatPhoneNumber(siteData.phone)}`}>
                   <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
-                    {displaySiteData.phone}
+                    {siteData.phone || '(00) 0000-0000'}
                   </Button>
                 </a>
               </CardContent>
@@ -385,9 +318,9 @@ const Contact = () => {
               Nossa equipe está pronta para atendê-lo e esclarecer todas as suas dúvidas
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href={`tel:${formatPhoneNumber(displaySiteData.phone)}`}>
+              <a href={`tel:${formatPhoneNumber(siteData.phone)}`}>
                 <Button size="lg" variant="secondary" className="bg-white text-blue-700 hover:bg-gray-100 text-lg px-8 py-6">
-                  Ligar: {displaySiteData.phone}
+                  Ligar: {siteData.phone || '(00) 0000-0000'}
                 </Button>
               </a>
               <Button 
