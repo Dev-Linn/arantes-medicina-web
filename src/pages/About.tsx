@@ -1,8 +1,68 @@
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Award, Users, Microscope, Heart, Target, Shield } from 'lucide-react';
 
+const initialDisplayData = {
+  phone: 'Seu Telefone Aqui',
+  whatsapp: 'Seu WhatsApp Aqui',
+  address: 'Seu Endereço Aqui',
+  workingHours: {
+    weekdays: 'Seg - Sex: Horário',
+    saturday: 'Sáb: Horário'
+  },
+  services: ['Serviço Principal 1', 'Serviço Principal 2', 'Serviço Principal 3'],
+  socialMedia: { instagram: '#', facebook: '#' },
+  homeTitle: '',
+  homeSubtitle: '',
+  aboutText: 'Há mais de 15 anos cuidando da saúde da comunidade de Santa Vitória-MG com excelência, tecnologia de ponta e atendimento humanizado.', // Default about text
+};
+
 const About = () => {
+  const [displaySiteData, setDisplaySiteData] = useState({
+    aboutText: initialDisplayData.aboutText,
+  });
+
+  useEffect(() => {
+    const savedData = localStorage.getItem('arantesSiteConfig');
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        setDisplaySiteData(prevData => ({
+          ...prevData,
+          aboutText: parsedData.aboutText || prevData.aboutText,
+        }));
+      } catch (error) {
+        console.error("Failed to parse site data from localStorage for About page", error);
+      }
+    }
+  }, []);
+
+  // Effect for real-time updates
+  useEffect(() => {
+    const handleDataUpdate = () => {
+      console.log('About.tsx: siteDataUpdated event received');
+      const savedData = localStorage.getItem('arantesSiteConfig');
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData);
+          setDisplaySiteData(prevData => ({
+            ...prevData, // Keep other potential state fields
+            aboutText: parsedData.aboutText || initialDisplayData.aboutText, // Fallback to initial
+          }));
+        } catch (error) {
+          console.error("About.tsx: Failed to parse updated site data from localStorage", error);
+          setDisplaySiteData({ aboutText: initialDisplayData.aboutText }); // Reset to default
+        }
+      }
+    };
+
+    window.addEventListener('siteDataUpdated', handleDataUpdate);
+    return () => {
+      window.removeEventListener('siteDataUpdated', handleDataUpdate);
+    };
+  }, []); // Empty dependency array
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -13,8 +73,7 @@ const About = () => {
               Sobre o <span className="text-blue-600">Arantes</span>
             </h1>
             <p className="text-xl text-gray-600 leading-relaxed">
-              Há mais de 15 anos cuidando da saúde da comunidade de Santa Vitória-MG com 
-              excelência, tecnologia de ponta e atendimento humanizado.
+              {displaySiteData.aboutText}
             </p>
           </div>
         </div>

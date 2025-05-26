@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -8,6 +8,50 @@ import { Menu, X } from 'lucide-react';
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const [displaySiteData, setDisplaySiteData] = useState({ phone: '(00) 0000-0000' });
+
+  useEffect(() => {
+    const savedData = localStorage.getItem('arantesSiteConfig');
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        setDisplaySiteData(prevData => ({
+          ...prevData,
+          phone: parsedData.phone || prevData.phone, 
+        }));
+      } catch (error) {
+        console.error("Failed to parse site data from localStorage for Header", error);
+        // Keep default phone if parsing fails
+      }
+    }
+  }, []);
+
+  // Effect for real-time updates
+  useEffect(() => {
+    const handleDataUpdate = () => {
+      console.log('Header.tsx: siteDataUpdated event received');
+      const savedData = localStorage.getItem('arantesSiteConfig');
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData);
+          setDisplaySiteData(prevData => ({ // Keep previous state for other fields if any
+            ...prevData,
+            phone: parsedData.phone || '(00) 0000-0000', // Fallback to default
+          }));
+        } catch (error) {
+          console.error("Header.tsx: Failed to parse updated site data from localStorage", error);
+          setDisplaySiteData({ phone: '(00) 0000-0000' }); // Reset to default
+        }
+      }
+    };
+
+    window.addEventListener('siteDataUpdated', handleDataUpdate);
+    return () => {
+      window.removeEventListener('siteDataUpdated', handleDataUpdate);
+    };
+  }, []);
+
+  const formatPhoneNumber = (phone: string) => phone.replace(/\D/g, '');
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -55,9 +99,9 @@ const Header = () => {
                 Resultados Online
               </Button>
             </Link>
-            <a href="tel:3432512055">
+            <a href={`tel:${formatPhoneNumber(displaySiteData.phone)}`}>
               <Button size="sm" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
-                (34) 3251-2055
+                {displaySiteData.phone}
               </Button>
             </a>
           </div>
@@ -102,9 +146,9 @@ const Header = () => {
                       Resultados Online
                     </Button>
                   </Link>
-                  <a href="tel:3432512055">
+                  <a href={`tel:${formatPhoneNumber(displaySiteData.phone)}`} onClick={() => setIsOpen(false)}>
                     <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
-                      (34) 3251-2055
+                      {displaySiteData.phone}
                     </Button>
                   </a>
                 </div>
