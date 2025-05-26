@@ -2,7 +2,16 @@
 import { useState, useEffect } from 'react';
 import { MessageCircle, X } from 'lucide-react';
 
-const WhatsAppFloat = () => {
+interface SiteDataForWhatsApp {
+  whatsapp: string;
+  // Add other fields from initialSiteDataObject if WhatsAppFloat needs them
+}
+
+interface WhatsAppFloatProps {
+  siteData: SiteDataForWhatsApp;
+}
+
+const WhatsAppFloat = ({ siteData }: WhatsAppFloatProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -15,10 +24,15 @@ const WhatsAppFloat = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const formatWhatsAppLink = (whatsapp: string, message?: string) => {
+    const digits = (whatsapp || '').replace(/\D/g, '');
+    const baseLink = digits.startsWith('55') && digits.length > 10 ? `https://wa.me/${digits}` : `https://wa.me/55${digits}`;
+    return message ? `${baseLink}?text=${encodeURIComponent(message)}` : baseLink;
+  };
+
   const handleWhatsAppClick = () => {
-    const phoneNumber = "5534932512055";
     const message = "Olá! Gostaria de mais informações sobre os serviços do laboratório Arantes.";
-    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    const url = formatWhatsAppLink(siteData.whatsapp, message);
     window.open(url, '_blank');
   };
 

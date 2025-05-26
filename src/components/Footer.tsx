@@ -1,86 +1,30 @@
 
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Clock, Instagram, Facebook } from 'lucide-react';
 
-const initialDisplayData = {
-  phone: '(00) 0000-0000',
-  whatsapp: '(00) 0000-0000',
-  address: 'Endereço Padrão, 123 – Bairro, Cidade – UF',
+interface SiteDataForFooter {
+  phone: string;
+  address: string;
   workingHours: {
-    weekdays: 'Seg - Sex: 00h às 00h',
-    saturday: 'Sáb: 00h às 00h'
-  },
+    weekdays: string;
+    saturday: string;
+  };
   socialMedia: {
-    instagram: '#',
-    facebook: '#'
-  },
-};
+    instagram: string;
+    facebook: string;
+  };
+  // Add other fields from initialSiteDataObject if Footer needs them
+}
 
-const Footer = () => {
-  const [displaySiteData, setDisplaySiteData] = useState(initialDisplayData);
+interface FooterProps {
+  siteData: SiteDataForFooter;
+}
 
-  useEffect(() => {
-    const savedData = localStorage.getItem('arantesSiteConfig');
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        setDisplaySiteData(prevData => ({
-          ...prevData,
-          ...parsedData,
-          workingHours: {
-            ...prevData.workingHours,
-            ...(parsedData.workingHours || {}),
-          },
-          socialMedia: {
-            ...prevData.socialMedia,
-            ...(parsedData.socialMedia || {}),
-          },
-        }));
-      } catch (error) {
-        console.error("Failed to parse site data from localStorage for Footer", error);
-        setDisplaySiteData(initialDisplayData);
-      }
-    }
-  }, []);
-
-  // Effect for real-time updates
-  useEffect(() => {
-    const handleDataUpdate = () => {
-      console.log('Footer.tsx: siteDataUpdated event received');
-      const savedData = localStorage.getItem('arantesSiteConfig');
-      if (savedData) {
-        try {
-          const parsedData = JSON.parse(savedData);
-          setDisplaySiteData(prevData => ({
-            ...initialDisplayData, // Start with defaults
-            ...parsedData,
-            workingHours: {
-              ...initialDisplayData.workingHours,
-              ...(parsedData.workingHours || {}),
-            },
-            socialMedia: {
-              ...initialDisplayData.socialMedia,
-              ...(parsedData.socialMedia || {}),
-            },
-          }));
-        } catch (error) {
-          console.error("Footer.tsx: Failed to parse updated site data from localStorage", error);
-          setDisplaySiteData(initialDisplayData);
-        }
-      }
-    };
-
-    window.addEventListener('siteDataUpdated', handleDataUpdate);
-    return () => {
-      window.removeEventListener('siteDataUpdated', handleDataUpdate);
-    };
-  }, []);
-
-  const formatPhoneNumber = (phone: string) => phone.replace(/\D/g, '');
+const Footer = ({ siteData }: FooterProps) => {
+  const formatPhoneNumber = (phone: string) => (phone || '').replace(/\D/g, '');
 
   // Prepare address display (simple split by comma for now, can be enhanced)
-  const addressParts = displaySiteData.address.split(', ');
+  const addressParts = (siteData.address || 'Endereço Padrão').split(', ');
 
 
   return (
@@ -135,16 +79,16 @@ const Footer = () => {
                   {addressParts.map((part, index) => (
                     <span key={index}>{part}<br /></span>
                   ))}
-                   {addressParts.length === 1 && <span>{displaySiteData.address}</span>} {/* Fallback if no commas */}
+                   {addressParts.length === 1 && <span>{siteData.address || 'Endereço Padrão'}</span>} {/* Fallback if no commas */}
                 </div>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="h-4 w-4 text-blue-400 flex-shrink-0" />
                 <a 
-                  href={`tel:${formatPhoneNumber(displaySiteData.phone)}`} 
+                  href={`tel:${formatPhoneNumber(siteData.phone)}`} 
                   className="text-gray-300 hover:text-blue-400 transition-colors text-sm"
                 >
-                  {displaySiteData.phone}
+                  {siteData.phone || '(00) 0000-0000'}
                 </a>
               </div>
             </div>
@@ -158,9 +102,9 @@ const Footer = () => {
                 <Clock className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-gray-300">
                   <p><strong>Segunda a Sexta:</strong></p>
-                  <p>{displaySiteData.workingHours.weekdays.replace('Segunda a Sexta: ', '')}</p>
+                  <p>{(siteData.workingHours?.weekdays || '00h às 00h').replace('Segunda a Sexta: ', '')}</p>
                   <p className="mt-2"><strong>Sábado:</strong></p>
-                  <p>{displaySiteData.workingHours.saturday.replace('Sábado: ', '')}</p>
+                  <p>{(siteData.workingHours?.saturday || '00h às 00h').replace('Sábado: ', '')}</p>
                 </div>
               </div>
             </div>
@@ -170,7 +114,7 @@ const Footer = () => {
               <p className="text-sm font-medium text-blue-400 mb-2">Siga-nos</p>
               <div className="flex space-x-3">
                 <a 
-                  href={displaySiteData.socialMedia.instagram || '#'} 
+                  href={siteData.socialMedia?.instagram || '#'} 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="text-gray-400 hover:text-blue-400 transition-colors"
@@ -179,7 +123,7 @@ const Footer = () => {
                   <Instagram className="h-5 w-5" />
                 </a>
                 <a 
-                  href={displaySiteData.socialMedia.facebook || '#'} 
+                  href={siteData.socialMedia?.facebook || '#'} 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="text-gray-400 hover:text-blue-400 transition-colors"

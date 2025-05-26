@@ -68,6 +68,7 @@ const AdminDashboard = () => {
     try {
       localStorage.setItem('arantesSiteConfig', JSON.stringify(siteData));
       window.dispatchEvent(new CustomEvent('siteDataUpdated'));
+      console.log('siteDataUpdated event dispatched from AdminDashboard');
       alert('Configurações salvas com sucesso!');
     } catch (error) {
       console.error("Failed to save site data to localStorage", error);
