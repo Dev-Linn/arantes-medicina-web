@@ -1,10 +1,99 @@
 
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Shield, Clock, MapPin, Users, Award, Microscope } from 'lucide-react';
 
+const initialDisplayData = {
+  phone: '(34) 3251-2055', // Default phone
+  whatsapp: '(34) 3251-2055', // Default WhatsApp
+  address: 'Avenida Joaquim Ribeiro de Gouveia, 1969 – Bairro Amoreiras, Santa Vitória – MG',
+  workingHours: {
+    weekdays: 'Segunda a Sexta: 07h às 17h',
+    saturday: 'Sábado: 07h às 11h'
+  },
+  services: [
+    'Análises clínicas', // Default service 1
+    'Coleta domiciliar',  // Default service 2
+    'Convênios médicos'  // Default service 3
+  ],
+  socialMedia: {
+    instagram: 'https://instagram.com/arantes', // Default Instagram
+    facebook: 'https://facebook.com/arantes'    // Default Facebook
+  },
+  homeTitle: 'Excelência em<span class="text-blue-600 block">Análises Clínicas</span>',
+  homeSubtitle: 'Tecnologia de ponta, precisão em cada resultado e atendimento humanizado para cuidar da sua saúde com a confiança que você merece.',
+};
+
 const Index = () => {
+  const [displaySiteData, setDisplaySiteData] = useState(initialDisplayData);
+
+  useEffect(() => {
+    const savedData = localStorage.getItem('arantesSiteConfig');
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        // Merge parsedData with initialDisplayData to ensure all fields are present
+        setDisplaySiteData(prevData => ({
+          ...prevData,
+          ...parsedData,
+          workingHours: {
+            ...prevData.workingHours,
+            ...(parsedData.workingHours || {}),
+          },
+          socialMedia: {
+            ...prevData.socialMedia,
+            ...(parsedData.socialMedia || {}),
+          },
+          services: parsedData.services && parsedData.services.length > 0 ? parsedData.services : prevData.services,
+        }));
+      } catch (error) {
+        console.error("Failed to parse site data from localStorage", error);
+        // Data is corrupted, use initialDisplayData
+        setDisplaySiteData(initialDisplayData);
+      }
+    }
+  }, []);
+
+  // Effect for real-time updates
+  useEffect(() => {
+    const handleDataUpdate = () => {
+      console.log('Index.tsx: siteDataUpdated event received');
+      const savedData = localStorage.getItem('arantesSiteConfig');
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData);
+          setDisplaySiteData(prevData => ({
+            ...initialDisplayData, // Start with defaults to ensure all keys are present
+            ...parsedData,
+            workingHours: {
+              ...initialDisplayData.workingHours,
+              ...(parsedData.workingHours || {}),
+            },
+            socialMedia: {
+              ...initialDisplayData.socialMedia,
+              ...(parsedData.socialMedia || {}),
+            },
+            services: parsedData.services && parsedData.services.length > 0 ? parsedData.services : initialDisplayData.services,
+          }));
+        } catch (error) {
+          console.error("Index.tsx: Failed to parse updated site data from localStorage", error);
+          // Optionally reset to initialDisplayData or handle error appropriately
+          setDisplaySiteData(initialDisplayData);
+        }
+      }
+    };
+
+    window.addEventListener('siteDataUpdated', handleDataUpdate);
+    return () => {
+      window.removeEventListener('siteDataUpdated', handleDataUpdate);
+    };
+  }, []); // Empty dependency array ensures this runs once on mount and cleans up on unmount
+
+  // Helper to format phone for tel: links
+  const formatPhoneNumber = (phone: string) => phone.replace(/\D/g, '');
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -13,13 +102,12 @@ const Index = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div>
-                <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                  Excelência em
-                  <span className="text-blue-600 block">Análises Clínicas</span>
-                </h1>
+                <h1 
+                  className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight"
+                  dangerouslySetInnerHTML={{ __html: displaySiteData.homeTitle }}
+                />
                 <p className="text-xl text-gray-600 mt-6 leading-relaxed">
-                  Tecnologia de ponta, precisão em cada resultado e atendimento humanizado 
-                  para cuidar da sua saúde com a confiança que você merece.
+                  {displaySiteData.homeSubtitle}
                 </p>
               </div>
               
@@ -30,7 +118,7 @@ const Index = () => {
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
-                <a href="tel:3432512055">
+                <a href={`tel:${formatPhoneNumber(displaySiteData.phone)}`}>
                   <Button variant="outline" size="lg" className="border-blue-200 text-blue-700 hover:bg-blue-50 text-lg px-8 py-6">
                     Agendar Exame
                   </Button>
@@ -85,36 +173,45 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Service 1 */}
             <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
               <CardContent className="p-8 text-center">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
                   <Microscope className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Análises Clínicas</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                  {displaySiteData.services[0] || initialDisplayData.services[0]}
+                </h3>
                 <p className="text-gray-600 leading-relaxed">
                   Exames laboratoriais completos com resultados precisos e confiáveis para diagnósticos assertivos.
                 </p>
               </CardContent>
             </Card>
 
+            {/* Service 2 */}
             <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
               <CardContent className="p-8 text-center">
                 <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
                   <MapPin className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Coleta Domiciliar</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                  {displaySiteData.services[1] || initialDisplayData.services[1]}
+                </h3>
                 <p className="text-gray-600 leading-relaxed">
                   Comodidade e segurança com coleta de exames no conforto da sua casa, mantendo todos os protocolos.
                 </p>
               </CardContent>
             </Card>
 
+            {/* Service 3 */}
             <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
               <CardContent className="p-8 text-center">
                 <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
                   <Shield className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Convênios</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                  {displaySiteData.services[2] || initialDisplayData.services[2]}
+                </h3>
                 <p className="text-gray-600 leading-relaxed">
                   Aceitamos diversos convênios médicos para facilitar o acesso aos nossos serviços de qualidade.
                 </p>
@@ -192,9 +289,9 @@ const Index = () => {
               Agende seus exames ou acesse seus resultados de forma rápida e segura
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="tel:3432512055">
+              <a href={`tel:${formatPhoneNumber(displaySiteData.phone)}`}>
                 <Button size="lg" variant="secondary" className="bg-white text-blue-700 hover:bg-gray-100 text-lg px-8 py-6">
-                  Ligar Agora: (34) 3251-2055
+                  Ligar Agora: {displaySiteData.phone}
                 </Button>
               </a>
               <Link to="/resultados">

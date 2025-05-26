@@ -1,21 +1,113 @@
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Phone, Clock, MessageCircle, Mail, Navigation } from 'lucide-react';
 
+const initialDisplayData = {
+  phone: '(00) 0000-0000',
+  whatsapp: '00000000000', // Expected to be digits for wa.me link
+  address: 'Endereço Padrão, 123 – Bairro, Cidade – UF',
+  workingHours: {
+    weekdays: 'Segunda a Sexta: 00h às 00h',
+    saturday: 'Sábado: 00h às 00h'
+  },
+  services: [], // Not directly used here but part of the structure
+  socialMedia: { instagram: '#', facebook: '#' },
+  homeTitle: '',
+  homeSubtitle: '',
+  aboutText: '',
+};
+
 const Contact = () => {
+  const [displaySiteData, setDisplaySiteData] = useState({
+    phone: initialDisplayData.phone,
+    whatsapp: initialDisplayData.whatsapp,
+    address: initialDisplayData.address,
+    workingHours: initialDisplayData.workingHours,
+  });
+
+  useEffect(() => {
+    const savedData = localStorage.getItem('arantesSiteConfig');
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        setDisplaySiteData(prevData => ({
+          ...prevData,
+          phone: parsedData.phone || prevData.phone,
+          whatsapp: parsedData.whatsapp || prevData.whatsapp,
+          address: parsedData.address || prevData.address,
+          workingHours: {
+            ...prevData.workingHours,
+            ...(parsedData.workingHours || {}),
+          },
+        }));
+      } catch (error) {
+        console.error("Failed to parse site data from localStorage for Contact page", error);
+      }
+    }
+  }, []);
+
+  // Effect for real-time updates
+  useEffect(() => {
+    const handleDataUpdate = () => {
+      console.log('Contact.tsx: siteDataUpdated event received');
+      const savedData = localStorage.getItem('arantesSiteConfig');
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData);
+          setDisplaySiteData(prevData => ({
+            ...initialDisplayData, // Start with full defaults
+            ...parsedData,
+            workingHours: {
+              ...initialDisplayData.workingHours,
+              ...(parsedData.workingHours || {}),
+            },
+            // Ensure other fields from initialDisplayData are preserved if not in parsedData
+            socialMedia: {
+                ...initialDisplayData.socialMedia,
+                ...(parsedData.socialMedia || {}),
+            },
+            services: parsedData.services || initialDisplayData.services,
+            homeTitle: parsedData.homeTitle || initialDisplayData.homeTitle,
+            homeSubtitle: parsedData.homeSubtitle || initialDisplayData.homeSubtitle,
+            aboutText: parsedData.aboutText || initialDisplayData.aboutText,
+          }));
+        } catch (error) {
+          console.error("Contact.tsx: Failed to parse updated site data from localStorage", error);
+          setDisplaySiteData(initialDisplayData); // Reset to a consistent default state
+        }
+      }
+    };
+
+    window.addEventListener('siteDataUpdated', handleDataUpdate);
+    return () => {
+      window.removeEventListener('siteDataUpdated', handleDataUpdate);
+    };
+  }, []);
+
+  const formatPhoneNumber = (phone: string) => phone.replace(/\D/g, '');
+
+  const formatWhatsAppLink = (whatsapp: string, message?: string) => {
+    const digits = whatsapp.replace(/\D/g, '');
+    const baseLink = digits.startsWith('55') && digits.length > 10 ? `https://wa.me/${digits}` : `https://wa.me/55${digits}`;
+    return message ? `${baseLink}?text=${encodeURIComponent(message)}` : baseLink;
+  };
+  
   const openMaps = () => {
-    const address = "Avenida Joaquim Ribeiro de Gouveia, 1969, Bairro Amoreiras, Santa Vitória, MG";
-    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displaySiteData.address)}`;
     window.open(url, '_blank');
   };
 
-  const openWhatsApp = () => {
-    const phoneNumber = "5534932512055";
-    const message = "Olá! Gostaria de mais informações sobre os serviços do laboratório Arantes.";
-    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+  const openWhatsApp = (message?: string) => {
+    const defaultMessage = "Olá! Gostaria de mais informações sobre os serviços do laboratório Arantes.";
+    const url = formatWhatsAppLink(displaySiteData.whatsapp, message || defaultMessage);
     window.open(url, '_blank');
   };
+  
+  // Prepare address display (simple split by comma for now, can be enhanced)
+  const addressParts = displaySiteData.address.split(', ');
+
 
   return (
     <div className="min-h-screen">
@@ -60,11 +152,12 @@ const Contact = () => {
                       </div>
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">Endereço</h3>
-                        <p className="text-gray-600 leading-relaxed">
-                          Avenida Joaquim Ribeiro de Gouveia, 1969<br />
-                          Bairro Amoreiras<br />
-                          Santa Vitória - MG
-                        </p>
+                        <div className="text-gray-600 leading-relaxed">
+                          {addressParts.map((part, index) => (
+                            <span key={index}>{part}<br /></span>
+                          ))}
+                          {addressParts.length === 1 && <span>{displaySiteData.address}</span>} {/* Fallback if no commas */}
+                        </div>
                         <Button 
                           onClick={openMaps}
                           variant="outline" 
@@ -88,8 +181,8 @@ const Contact = () => {
                       </div>
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">Telefone</h3>
-                        <p className="text-gray-600 mb-3">(34) 3251-2055</p>
-                        <a href="tel:3432512055">
+                        <p className="text-gray-600 mb-3">{displaySiteData.phone}</p>
+                        <a href={`tel:${formatPhoneNumber(displaySiteData.phone)}`}>
                           <Button 
                             size="sm" 
                             className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
@@ -111,9 +204,9 @@ const Contact = () => {
                       </div>
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">WhatsApp</h3>
-                        <p className="text-gray-600 mb-3">(34) 3251-2055</p>
+                        <p className="text-gray-600 mb-3">{displaySiteData.whatsapp}</p>
                         <Button 
-                          onClick={openWhatsApp}
+                          onClick={() => openWhatsApp()}
                           size="sm" 
                           className="bg-green-500 hover:bg-green-600"
                         >
@@ -137,11 +230,11 @@ const Contact = () => {
                         <div className="space-y-2 text-gray-600">
                           <div className="flex justify-between">
                             <span className="font-medium">Segunda a Sexta:</span>
-                            <span>07h às 17h</span>
+                            <span>{displaySiteData.workingHours.weekdays.replace('Segunda a Sexta: ', '')}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="font-medium">Sábado:</span>
-                            <span>07h às 11h</span>
+                            <span>{displaySiteData.workingHours.saturday.replace('Sábado: ', '')}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="font-medium">Domingo:</span>
@@ -233,9 +326,9 @@ const Contact = () => {
                 <p className="text-gray-600 mb-6">
                   Ligue para nosso atendimento e agende seus exames de forma rápida
                 </p>
-                <a href="tel:3432512055">
+                <a href={`tel:${formatPhoneNumber(displaySiteData.phone)}`}>
                   <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
-                    (34) 3251-2055
+                    {displaySiteData.phone}
                   </Button>
                 </a>
               </CardContent>
@@ -251,7 +344,7 @@ const Contact = () => {
                   Converse conosco pelo WhatsApp para agendar com praticidade
                 </p>
                 <Button 
-                  onClick={openWhatsApp}
+                  onClick={() => openWhatsApp("Olá! Gostaria de agendar um exame.")}
                   className="w-full bg-green-500 hover:bg-green-600"
                 >
                   Conversar no WhatsApp
@@ -292,13 +385,13 @@ const Contact = () => {
               Nossa equipe está pronta para atendê-lo e esclarecer todas as suas dúvidas
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="tel:3432512055">
+              <a href={`tel:${formatPhoneNumber(displaySiteData.phone)}`}>
                 <Button size="lg" variant="secondary" className="bg-white text-blue-700 hover:bg-gray-100 text-lg px-8 py-6">
-                  Ligar: (34) 3251-2055
+                  Ligar: {displaySiteData.phone}
                 </Button>
               </a>
               <Button 
-                onClick={openWhatsApp}
+                onClick={() => openWhatsApp()}
                 size="lg" 
                 variant="outline" 
                 className="border-white text-white hover:bg-white hover:text-blue-700 text-lg px-8 py-6"

@@ -47,6 +47,16 @@ const AdminDashboard = () => {
     if (!isAuthenticated) {
       navigate('/admin');
     }
+
+    const savedData = localStorage.getItem('arantesSiteConfig');
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        setSiteData(parsedData);
+      } catch (error) {
+        console.error("Failed to parse site data from localStorage", error);
+      }
+    }
   }, [navigate]);
 
   const handleLogout = () => {
@@ -55,8 +65,14 @@ const AdminDashboard = () => {
   };
 
   const handleSave = () => {
-    // Em produção, aqui salvaria no banco de dados
-    alert('Configurações salvas com sucesso!');
+    try {
+      localStorage.setItem('arantesSiteConfig', JSON.stringify(siteData));
+      window.dispatchEvent(new CustomEvent('siteDataUpdated'));
+      alert('Configurações salvas com sucesso!');
+    } catch (error) {
+      console.error("Failed to save site data to localStorage", error);
+      alert('Erro ao salvar configurações.');
+    }
   };
 
   const stats = [

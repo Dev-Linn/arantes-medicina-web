@@ -1,13 +1,110 @@
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Microscope, MapPin, Shield, Clock, Users, Award, Phone } from 'lucide-react';
 
+const initialDisplayData = {
+  phone: '(00) 0000-0000',
+  whatsapp: '00000000000', // Expected to be digits for wa.me link
+  address: 'Seu Endereço Aqui',
+  workingHours: {
+    weekdays: 'Seg - Sex: Horário',
+    saturday: 'Sáb: Horário'
+  },
+  services: ['Análises Clínicas Completas', 'Coleta Domiciliar', 'Convênios Médicos'],
+  socialMedia: { instagram: '#', facebook: '#' },
+  homeTitle: '',
+  homeSubtitle: '',
+  aboutText: '', 
+};
+
+
 const Services = () => {
-  const services = [
+  const [displaySiteData, setDisplaySiteData] = useState({
+    phone: initialDisplayData.phone,
+    whatsapp: initialDisplayData.whatsapp,
+    services: initialDisplayData.services,
+  });
+
+  useEffect(() => {
+    const savedData = localStorage.getItem('arantesSiteConfig');
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        setDisplaySiteData(prevData => ({
+          ...prevData,
+          phone: parsedData.phone || prevData.phone,
+          whatsapp: parsedData.whatsapp || prevData.whatsapp,
+          services: parsedData.services && parsedData.services.length >= 3 ? 
+                    [parsedData.services[0], parsedData.services[1], parsedData.services[2]] : 
+                    prevData.services,
+        }));
+      } catch (error) {
+        console.error("Failed to parse site data from localStorage for Services page", error);
+      }
+    }
+  }, []);
+
+  // Effect for real-time updates
+  useEffect(() => {
+    const handleDataUpdate = () => {
+      console.log('Services.tsx: siteDataUpdated event received');
+      const savedData = localStorage.getItem('arantesSiteConfig');
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData);
+          setDisplaySiteData(prevData => ({
+            ...initialDisplayData, // Start with full defaults
+            phone: parsedData.phone || initialDisplayData.phone,
+            whatsapp: parsedData.whatsapp || initialDisplayData.whatsapp,
+            services: parsedData.services && parsedData.services.length >= 3 ?
+                      [parsedData.services[0], parsedData.services[1], parsedData.services[2]] :
+                      initialDisplayData.services,
+            // Ensure other fields from initialDisplayData are preserved if not in parsedData
+            address: parsedData.address || initialDisplayData.address,
+            workingHours: {
+                ...initialDisplayData.workingHours,
+                ...(parsedData.workingHours || {}),
+            },
+            socialMedia: {
+                ...initialDisplayData.socialMedia,
+                ...(parsedData.socialMedia || {}),
+            },
+            homeTitle: parsedData.homeTitle || initialDisplayData.homeTitle,
+            homeSubtitle: parsedData.homeSubtitle || initialDisplayData.homeSubtitle,
+            aboutText: parsedData.aboutText || initialDisplayData.aboutText,
+          }));
+        } catch (error) {
+          console.error("Services.tsx: Failed to parse updated site data from localStorage", error);
+          // Reset to a consistent default state
+          setDisplaySiteData(initialDisplayData);
+        }
+      }
+    };
+
+    window.addEventListener('siteDataUpdated', handleDataUpdate);
+    return () => {
+      window.removeEventListener('siteDataUpdated', handleDataUpdate);
+    };
+  }, []);
+
+  const formatPhoneNumber = (phone: string) => phone.replace(/\D/g, '');
+
+  const formatWhatsAppLink = (whatsapp: string) => {
+    const digits = whatsapp.replace(/\D/g, '');
+    // Assuming '55' is the country code for Brazil. 
+    // If number already starts with 55 and is long enough, use as is. Otherwise, prepend 55.
+    if (digits.startsWith('55') && digits.length > 10) {
+      return `https://wa.me/${digits}`;
+    }
+    return `https://wa.me/55${digits}`;
+  };
+
+  const staticServicesData = [ // Keep static icon and description data
     {
       icon: Microscope,
-      title: 'Análises Clínicas Completas',
+      // title will come from displaySiteData.services[0]
       description: 'Exames laboratoriais abrangentes para diagnósticos precisos',
       features: [
         'Hemograma completo',
@@ -22,7 +119,7 @@ const Services = () => {
     },
     {
       icon: MapPin,
-      title: 'Coleta Domiciliar',
+      // title will come from displaySiteData.services[1]
       description: 'Comodidade e segurança no conforto da sua casa',
       features: [
         'Agendamento flexível',
@@ -37,7 +134,7 @@ const Services = () => {
     },
     {
       icon: Shield,
-      title: 'Convênios Médicos',
+      // title will come from displaySiteData.services[2]
       description: 'Aceitamos diversos planos de saúde para sua comodidade',
       features: [
         'Unimed',
@@ -97,13 +194,13 @@ const Services = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {services.map((service, index) => (
+          {staticServicesData.map((service, index) => (
               <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardHeader className="text-center pb-4">
                   <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <service.icon className="h-8 w-8 text-white" />
                   </div>
-                  <CardTitle className="text-xl text-gray-900">{service.title}</CardTitle>
+                <CardTitle className="text-xl text-gray-900">{displaySiteData.services[index] || initialDisplayData.services[index]}</CardTitle>
                   <p className="text-gray-600">{service.description}</p>
                 </CardHeader>
                 <CardContent>
@@ -241,12 +338,12 @@ const Services = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="tel:3432512055">
+              <a href={`tel:${formatPhoneNumber(displaySiteData.phone)}`}>
                 <Button size="lg" variant="secondary" className="bg-white text-blue-700 hover:bg-gray-100 text-lg px-8 py-6">
-                  Ligar: (34) 3251-2055
+                  Ligar: {displaySiteData.phone}
                 </Button>
               </a>
-              <a href="https://wa.me/5534932512055?text=Olá! Gostaria de agendar exames no laboratório Arantes." target="_blank" rel="noopener noreferrer">
+              <a href={formatWhatsAppLink(displaySiteData.whatsapp)} target="_blank" rel="noopener noreferrer">
                 <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-700 text-lg px-8 py-6">
                   WhatsApp
                 </Button>
