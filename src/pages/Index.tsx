@@ -111,52 +111,41 @@ const Index = ({ siteData }: IndexProps) => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Service 1 */}
-            <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
-              <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
-                  <Microscope className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  {siteData.services?.[0] || 'Serviço 1'}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  Exames laboratoriais completos com resultados precisos e confiáveis para diagnósticos assertivos.
-                </p>
-              </CardContent>
-            </Card>
+          {Array.isArray(siteData.services) && siteData.services.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {siteData.services.slice(0, 3).map((serviceName, index) => {
+                // Define default static data for icons and descriptions for the preview cards
+                const servicePreviewStaticData = [
+                  { icon: Microscope, description: 'Exames laboratoriais completos com resultados precisos e confiáveis para diagnósticos assertivos.' },
+                  { icon: MapPin, description: 'Comodidade e segurança com coleta de exames no conforto da sua casa, mantendo todos os protocolos.' },
+                  { icon: Shield, description: 'Aceitamos diversos convênios médicos para facilitar o acesso aos nossos serviços de qualidade.' }
+                ];
+                const IconComponent = servicePreviewStaticData[index]?.icon || Users; // Fallback icon
+                const description = servicePreviewStaticData[index]?.description || 'Descrição do serviço.';
+                const iconColorClass = ['from-blue-500 to-blue-600', 'from-green-500 to-green-600', 'from-purple-500 to-purple-600'][index] || 'from-gray-500 to-gray-600';
 
-            {/* Service 2 */}
-            <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
-              <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
-                  <MapPin className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  {siteData.services?.[1] || 'Serviço 2'}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  Comodidade e segurança com coleta de exames no conforto da sua casa, mantendo todos os protocolos.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Service 3 */}
-            <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
-              <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
-                  <Shield className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  {siteData.services?.[2] || 'Serviço 3'}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  Aceitamos diversos convênios médicos para facilitar o acesso aos nossos serviços de qualidade.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+                return (
+                  <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
+                    <CardContent className="p-8 text-center">
+                      <div className={`w-16 h-16 bg-gradient-to-br ${iconColorClass} rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform`}>
+                        <IconComponent className="h-8 w-8 text-white" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                        {serviceName || `Serviço ${index + 1}`}
+                      </h3>
+                      <p className="text-gray-600 leading-relaxed">
+                        {description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-10">
+              <p className="text-lg text-gray-500">Nossos principais serviços serão listados aqui em breve.</p>
+            </div>
+          )}
 
           <div className="text-center mt-12">
             <Link to="/servicos">

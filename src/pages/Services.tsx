@@ -26,9 +26,10 @@ const Services = ({ siteData }: ServicesProps) => {
     return `https://wa.me/55${digits}`;
   };
 
-  const staticServicesData = [ // Keep static icon and description data
+  const staticServicesData = [ 
     {
       icon: Microscope,
+      title: 'Análises Clínicas Completas', // Match this with names from siteData.services
       description: 'Exames laboratoriais abrangentes para diagnósticos precisos',
       features: [
         'Hemograma completo',
@@ -43,6 +44,7 @@ const Services = ({ siteData }: ServicesProps) => {
     },
     {
       icon: MapPin,
+      title: 'Coleta Domiciliar', // Match this with names from siteData.services
       description: 'Comodidade e segurança no conforto da sua casa',
       features: [
         'Agendamento flexível',
@@ -57,6 +59,7 @@ const Services = ({ siteData }: ServicesProps) => {
     },
     {
       icon: Shield,
+      title: 'Convênios Médicos', // Match this with names from siteData.services
       description: 'Aceitamos diversos planos de saúde para sua comodidade',
       features: [
         'Unimed',
@@ -115,29 +118,51 @@ const Services = ({ siteData }: ServicesProps) => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {staticServicesData.map((service, index) => (
-              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                <CardHeader className="text-center pb-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <service.icon className="h-8 w-8 text-white" />
+          {Array.isArray(siteData.services) && siteData.services.length > 0 ? (
+            (() => {
+              const displayedServices = staticServicesData.filter(staticService =>
+                siteData.services.includes(staticService.title)
+              );
+
+              if (displayedServices.length === 0) {
+                return (
+                  <div className="text-center py-10">
+                    <p className="text-lg text-gray-500">Nenhum dos serviços principais configurados está disponível para exibição no momento. Consulte-nos para mais detalhes.</p>
                   </div>
-                <CardTitle className="text-xl text-gray-900">{siteData.services?.[index] || `Serviço Padrão ${index + 1}`}</CardTitle>
-                  <p className="text-gray-600">{service.description}</p>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {service.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center text-sm text-gray-600">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                );
+              }
+
+              return (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {displayedServices.map((service, index) => (
+                    <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+                      <CardHeader className="text-center pb-4">
+                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <service.icon className="h-8 w-8 text-white" />
+                        </div>
+                        <CardTitle className="text-xl text-gray-900">{service.title}</CardTitle>
+                        <p className="text-gray-600">{service.description}</p>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {service.features.map((feature, idx) => (
+                            <li key={idx} className="flex items-center text-sm text-gray-600">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                              {feature}
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              );
+            })()
+          ) : (
+            <div className="text-center py-10">
+              <p className="text-lg text-gray-500">Consulte nossos serviços entrando em contato.</p>
+            </div>
+          )}
         </div>
       </section>
 

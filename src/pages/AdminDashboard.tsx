@@ -31,11 +31,7 @@ const AdminDashboard = () => {
       weekdays: 'Admin Segunda a Sexta: 07h às 17h',
       saturday: 'Admin Sábado: 07h às 11h'
     },
-    services: [
-      'Admin Análises clínicas',
-      'Admin Coleta domiciliar',
-      'Admin Convênios médicos'
-    ],
+    services: [], // Initialize as an empty array
     socialMedia: {
       instagram: 'admin_insta',
       facebook: 'admin_fb'
