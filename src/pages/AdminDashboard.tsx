@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,416 +6,520 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
-  Settings, 
+  Shield, 
   Users, 
-  BarChart3, 
   FileText, 
   Phone, 
-  Clock, 
-  MapPin, 
-  LogOut,
-  Save,
+  BarChart3, 
+  Settings, 
+  Save, 
+  LogOut, 
   Eye,
+  Plus,
+  Trash2,
   Edit
 } from 'lucide-react';
+import { 
+  validateToken, 
+  secureClearData, 
+  getSecurityLogs,
+  logSecurityEvent 
+} from '@/utils/secureAuth';
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
+  
+  // Dados do site
   const [siteData, setSiteData] = useState({
-    phone: 'Admin (34) 3251-2055',
-    whatsapp: 'Admin (34) 93251-2055',
-    address: 'Admin Avenida Joaquim Ribeiro de Gouveia, 1969 – Bairro Amoreiras, Santa Vitória – MG',
-    workingHours: {
-      weekdays: 'Admin Segunda a Sexta: 07h às 17h',
-      saturday: 'Admin Sábado: 07h às 11h'
-    },
-    services: [], // Initialize as an empty array
-    socialMedia: {
-      instagram: 'admin_insta',
-      facebook: 'admin_fb'
-    },
-    homeTitle: 'Admin Home Title Default',
-    homeSubtitle: 'Admin Home Subtitle Default',
-    aboutText: 'Admin About Text Default',
-    metaTitle: 'Admin Meta Title Default',
-    metaDescription: 'Admin Meta Description Default',
-    keywords: 'admin, default, keywords',
-    analyticsId: 'G-ADMINXXXXXX',
+    // Contato
+    phone: '(34) 3251-2055',
+    whatsapp: '(34) 93251-2055',
+    email: 'contato@aranteslaboratorio.com.br',
+    address: 'Avenida Joaquim Ribeiro de Gouveia, 1969 – Bairro Amoreiras, Santa Vitória – MG',
+    
+    // Horários
+    weekdaysHours: 'Segunda a Sexta: 07h às 17h',
+    saturdayHours: 'Sábado: 07h às 11h',
+    sundayHours: 'Domingo: Fechado',
+    
+    // Redes sociais
+    instagram: 'https://instagram.com/aranteslaboratorio',
+    facebook: 'https://facebook.com/aranteslaboratorio',
+    
+    // Conteúdo
+    homeTitle: 'Arantes Medicina Laboratorial',
+    homeSubtitle: 'Excelência em análises clínicas com mais de 30 anos de tradição em Santa Vitória',
+    aboutText: 'O Laboratório Arantes é referência em análises clínicas na região, oferecendo serviços de alta qualidade com equipamentos modernos e profissionais especializados.',
+    missionText: 'Nossa missão é fornecer resultados precisos e confiáveis para auxiliar no diagnóstico e tratamento de nossos pacientes.',
+    
+    // Listas
+    services: [
+      'Análises Clínicas Gerais',
+      'Exames de Sangue',
+      'Exames de Urina',
+      'Exames Hormonais',
+      'Exames Cardiológicos',
+      'Check-up Completo'
+    ],
+    convenios: [
+      'SUS - Sistema Único de Saúde',
+      'Unimed',
+      'Bradesco Saúde',
+      'Amil',
+      'SulAmérica',
+      'Particular'
+    ]
   });
+  
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem('adminAuth');
-    if (!isAuthenticated) {
-      navigate('/admin');
-    }
-
-    const savedData = localStorage.getItem('arantesSiteConfig');
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        setSiteData(parsedData);
-      } catch (error) {
-        console.error("Failed to parse site data from localStorage", error);
+    const checkAuth = () => {
+      const token = localStorage.getItem('adminAuthToken');
+      
+      if (!token || !validateToken(token)) {
+        navigate('/admin/login');
+        return;
       }
-    }
+
+      setIsAuthenticated(true);
+      
+      // Carregar dados salvos do site
+      const savedData = localStorage.getItem('arantesSiteConfig');
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData);
+          setSiteData(prev => ({ ...prev, ...parsedData }));
+        } catch (error) {
+          console.error('Erro ao carregar dados do site:', error);
+        }
+      }
+      
+      setLoading(false);
+      logSecurityEvent('DASHBOARD_ACCESSED');
+    };
+
+    checkAuth();
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem('adminAuth');
-    navigate('/admin');
+    logSecurityEvent('MANUAL_LOGOUT');
+    secureClearData();
+    navigate('/admin/login');
   };
 
   const handleSave = () => {
     try {
       localStorage.setItem('arantesSiteConfig', JSON.stringify(siteData));
-      window.dispatchEvent(new CustomEvent('siteDataUpdated'));
-      console.log('siteDataUpdated event dispatched from AdminDashboard');
-      alert('Configurações salvas com sucesso!');
+      window.dispatchEvent(new CustomEvent('siteDataUpdated', { detail: siteData }));
+      alert('✅ Salvo com sucesso!');
+      logSecurityEvent('SITE_CONFIG_UPDATED');
     } catch (error) {
-      console.error("Failed to save site data to localStorage", error);
-      alert('Erro ao salvar configurações.');
+      alert('❌ Erro ao salvar!');
     }
   };
 
-  const stats = [
-    { title: 'Visitantes Hoje', value: '247', icon: Users, color: 'blue' },
-    { title: 'Acessos Resultados', value: '89', icon: FileText, color: 'green' },
-    { title: 'Ligações Recebidas', value: '34', icon: Phone, color: 'purple' },
-    { title: 'WhatsApp Mensagens', value: '56', icon: BarChart3, color: 'orange' }
-  ];
+  const updateData = (field: string, value: any) => {
+    setSiteData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const addService = () => {
+    const newService = prompt('Digite o nome do novo serviço:');
+    if (newService) {
+      setSiteData(prev => ({
+        ...prev,
+        services: [...prev.services, newService]
+      }));
+    }
+  };
+
+  const removeService = (index: number) => {
+    setSiteData(prev => ({
+      ...prev,
+      services: prev.services.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addConvenio = () => {
+    const newConvenio = prompt('Digite o nome do novo convênio:');
+    if (newConvenio) {
+      setSiteData(prev => ({
+        ...prev,
+        convenios: [...prev.convenios, newConvenio]
+      }));
+    }
+  };
+
+  const removeConvenio = (index: number) => {
+    setSiteData(prev => ({
+      ...prev,
+      convenios: prev.convenios.filter((_, i) => i !== index)
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4 animate-pulse" />
+          <p className="text-gray-600">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 lg:px-6">
-          <div className="flex items-center justify-between h-16">
+      <div className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-gray-800 to-gray-900 rounded-full flex items-center justify-center">
-                <Settings className="h-5 w-5 text-white" />
-              </div>
+              <Shield className="h-8 w-8 text-primary-teal-600" />
               <div>
-                <h1 className="text-lg font-semibold text-gray-900">Dashboard Administrativo</h1>
-                <p className="text-sm text-gray-600">Arantes Medicina Laboratorial</p>
+                <h1 className="text-xl font-bold text-gray-900">Dashboard Admin</h1>
+                <p className="text-sm text-gray-600">Gerenciar conteúdo do site</p>
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm" onClick={() => navigate('/')}>
+            <div className="flex items-center space-x-3">
+              <Button variant="outline" onClick={() => navigate('/')}>
                 <Eye className="h-4 w-4 mr-2" />
                 Ver Site
               </Button>
-              <Button variant="outline" size="sm" onClick={handleLogout}>
+              <Button onClick={handleLogout} variant="outline">
                 <LogOut className="h-4 w-4 mr-2" />
                 Sair
               </Button>
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
-      <div className="container mx-auto px-4 lg:px-6 py-8">
-        {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <Card key={index} className="border-0 shadow-lg">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  </div>
-                  <div className={`w-12 h-12 bg-gradient-to-br from-${stat.color}-500 to-${stat.color}-600 rounded-lg flex items-center justify-center`}>
-                    <stat.icon className="h-6 w-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      {/* Main Content */}
+      <div className="container mx-auto px-6 py-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                     <TabsList className="grid w-full grid-cols-4">
+             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+             <TabsTrigger value="content">Conteúdo</TabsTrigger>
+             <TabsTrigger value="contact">Contato</TabsTrigger>
+             <TabsTrigger value="services">Serviços</TabsTrigger>
+           </TabsList>
 
-        {/* Tabs de Configuração */}
-        <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="general">Geral</TabsTrigger>
-            <TabsTrigger value="content">Conteúdo</TabsTrigger>
-            <TabsTrigger value="services">Serviços</TabsTrigger>
-            <TabsTrigger value="seo">SEO</TabsTrigger>
-          </TabsList>
-
-          {/* Configurações Gerais */}
-          <TabsContent value="general">
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Settings className="h-5 w-5 mr-2" />
-                  Configurações Gerais
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Telefone</Label>
-                    <Input
-                      id="phone"
-                      value={siteData.phone}
-                      onChange={(e) => setSiteData({...siteData, phone: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="whatsapp">WhatsApp</Label>
-                    <Input
-                      id="whatsapp"
-                      value={siteData.whatsapp}
-                      onChange={(e) => setSiteData({...siteData, whatsapp: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="address">Endereço Completo</Label>
-                  <Textarea
-                    id="address"
-                    value={siteData.address}
-                    onChange={(e) => setSiteData({...siteData, address: e.target.value})}
-                    rows={3}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="weekdays">Horário Semana</Label>
-                    <Input
-                      id="weekdays"
-                      value={siteData.workingHours.weekdays}
-                      onChange={(e) => setSiteData({
-                        ...siteData, 
-                        workingHours: {...siteData.workingHours, weekdays: e.target.value}
-                      })}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="saturday">Horário Sábado</Label>
-                    <Input
-                      id="saturday"
-                      value={siteData.workingHours.saturday}
-                      onChange={(e) => setSiteData({
-                        ...siteData, 
-                        workingHours: {...siteData.workingHours, saturday: e.target.value}
-                      })}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="instagram">Instagram</Label>
-                    <Input
-                      id="instagram"
-                      placeholder="https://instagram.com/arantes"
-                      value={siteData.socialMedia.instagram}
-                      onChange={(e) => setSiteData({
-                        ...siteData, 
-                        socialMedia: {...siteData.socialMedia, instagram: e.target.value}
-                      })}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="facebook">Facebook</Label>
-                    <Input
-                      id="facebook"
-                      placeholder="https://facebook.com/arantes"
-                      value={siteData.socialMedia.facebook}
-                      onChange={(e) => setSiteData({
-                        ...siteData, 
-                        socialMedia: {...siteData.socialMedia, facebook: e.target.value}
-                      })}
-                    />
-                  </div>
-                </div>
-
-                <Button onClick={handleSave} className="w-full">
-                  <Save className="h-4 w-4 mr-2" />
-                  Salvar Configurações
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Gerenciamento de Conteúdo */}
-          <TabsContent value="content">
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Edit className="h-5 w-5 mr-2" />
-                  Gerenciar Conteúdo
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="homeTitle">Título da Página Inicial</Label>
-                  <Input
-                    id="homeTitle"
-                    value={siteData.homeTitle}
-                    onChange={(e) => setSiteData(prev => ({...prev, homeTitle: e.target.value}))}
-                    placeholder="Digite o título principal"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="homeSubtitle">Subtítulo da Página Inicial</Label>
-                  <Textarea
-                    id="homeSubtitle"
-                    value={siteData.homeSubtitle}
-                    onChange={(e) => setSiteData(prev => ({...prev, homeSubtitle: e.target.value}))}
-                    rows={3}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="aboutText">Texto Sobre Nós</Label>
-                  <Textarea
-                    id="aboutText"
-                    value={siteData.aboutText}
-                    onChange={(e) => setSiteData(prev => ({...prev, aboutText: e.target.value}))}
-                    rows={4}
-                  />
-                </div>
-
-                <Button onClick={handleSave} className="w-full">
-                  <Save className="h-4 w-4 mr-2" />
-                  Atualizar Conteúdo
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Gerenciamento de Serviços */}
-          <TabsContent value="services">
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <FileText className="h-5 w-5 mr-2" />
-                  Gerenciar Serviços
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <Label>Serviços Oferecidos</Label>
-                  {siteData.services.map((service, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <Input
-                        value={service}
-                        onChange={(e) => {
-                          const newServices = [...siteData.services];
-                          newServices[index] = e.target.value;
-                          setSiteData(prev => ({...prev, services: newServices}));
-                        }}
-                      />
-                      <Button variant="outline" size="sm" className="text-red-600">
-                        Remover
-                      </Button>
+          {/* Overview */}
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Users className="h-8 w-8 text-primary-teal-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Visitantes Hoje</p>
+                      <p className="text-2xl font-bold text-gray-900">247</p>
                     </div>
-                  ))}
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => {
-                      setSiteData(prev => ({
-                        ...prev,
-                        services: [...prev.services, ''] // Add a new empty service
-                      }));
-                    }}
-                  >
-                    Adicionar Novo Serviço
-                  </Button>
-                </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                <div className="space-y-2">
-                  <Label htmlFor="convenios">Convênios Aceitos</Label>
-                  <Textarea
-                    id="convenios"
-                    placeholder="Liste os convênios aceitos (um por linha)"
-                    rows={5}
-                  />
-                </div>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <FileText className="h-8 w-8 text-green-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Consultas Resultados</p>
+                      <p className="text-2xl font-bold text-gray-900">89</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                <Button onClick={handleSave} className="w-full">
-                  <Save className="h-4 w-4 mr-2" />
-                  Salvar Serviços
-                </Button>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Phone className="h-8 w-8 text-purple-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Contatos WhatsApp</p>
+                      <p className="text-2xl font-bold text-gray-900">34</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Ações Rápidas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                   <Button onClick={() => setActiveTab('content')} className="justify-start">
+                     <Edit className="h-4 w-4 mr-2" />
+                     Editar Conteúdo
+                   </Button>
+                   <Button onClick={() => setActiveTab('contact')} className="justify-start">
+                     <Phone className="h-4 w-4 mr-2" />
+                     Editar Contato
+                   </Button>
+                   <Button onClick={() => setActiveTab('services')} className="justify-start">
+                     <Settings className="h-4 w-4 mr-2" />
+                     Gerenciar Serviços
+                   </Button>
+                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Configurações SEO */}
-          <TabsContent value="seo">
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2" />
-                  Configurações SEO
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="metaTitle">Título da Página (Meta Title)</Label>
-                  <Input
-                    id="metaTitle"
-                    value={siteData.metaTitle}
-                    onChange={(e) => setSiteData(prev => ({...prev, metaTitle: e.target.value}))}
-                    maxLength={60}
-                  />
-                  <p className="text-xs text-gray-500">Máximo 60 caracteres</p>
-                </div>
+                     {/* Content Management */}
+           <TabsContent value="content" className="space-y-6">
+             <Card>
+               <CardHeader>
+                 <CardTitle>Textos do Site</CardTitle>
+               </CardHeader>
+               <CardContent className="space-y-4">
+                 <div className="space-y-2">
+                   <Label htmlFor="homeTitle">Título Principal</Label>
+                   <Input
+                     id="homeTitle"
+                     value={siteData.homeTitle}
+                     onChange={(e) => updateData('homeTitle', e.target.value)}
+                   />
+                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="metaDescription">Descrição da Página (Meta Description)</Label>
-                  <Textarea
-                    id="metaDescription"
-                    value={siteData.metaDescription}
-                    onChange={(e) => setSiteData(prev => ({...prev, metaDescription: e.target.value}))}
-                    maxLength={160}
-                    rows={3}
-                  />
-                  <p className="text-xs text-gray-500">Máximo 160 caracteres</p>
-                </div>
+                 <div className="space-y-2">
+                   <Label htmlFor="homeSubtitle">Subtítulo</Label>
+                   <Input
+                     id="homeSubtitle"
+                     value={siteData.homeSubtitle}
+                     onChange={(e) => updateData('homeSubtitle', e.target.value)}
+                   />
+                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="keywords">Palavras-chave</Label>
-                  <Input
-                    id="keywords"
-                    value={siteData.keywords}
-                    onChange={(e) => setSiteData(prev => ({...prev, keywords: e.target.value}))}
-                    placeholder="Separe as palavras-chave por vírgula"
-                  />
-                </div>
+                 <div className="space-y-2">
+                   <Label htmlFor="aboutText">Texto Sobre Nós</Label>
+                   <Textarea
+                     id="aboutText"
+                     value={siteData.aboutText}
+                     onChange={(e) => updateData('aboutText', e.target.value)}
+                     rows={4}
+                   />
+                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="analyticsId">Google Analytics ID</Label>
-                  <Input
-                    id="analyticsId"
-                    value={siteData.analyticsId}
-                    onChange={(e) => setSiteData(prev => ({...prev, analyticsId: e.target.value}))}
-                    placeholder="G-XXXXXXXXXX"
-                  />
-                </div>
+                 <div className="space-y-2">
+                   <Label htmlFor="missionText">Texto da Missão</Label>
+                   <Textarea
+                     id="missionText"
+                     value={siteData.missionText}
+                     onChange={(e) => updateData('missionText', e.target.value)}
+                     rows={3}
+                   />
+                 </div>
+               </CardContent>
+             </Card>
+           </TabsContent>
 
-                <Button onClick={handleSave} className="w-full">
-                  <Save className="h-4 w-4 mr-2" />
-                  Salvar Configurações SEO
-                </Button>
-              </CardContent>
-            </Card>
+           {/* Contact Management */}
+           <TabsContent value="contact" className="space-y-6">
+             <Card>
+               <CardHeader>
+                 <CardTitle>Informações de Contato</CardTitle>
+               </CardHeader>
+               <CardContent className="space-y-4">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div className="space-y-2">
+                     <Label htmlFor="phone">Telefone</Label>
+                     <Input
+                       id="phone"
+                       value={siteData.phone}
+                       onChange={(e) => updateData('phone', e.target.value)}
+                     />
+                   </div>
+                   
+                   <div className="space-y-2">
+                     <Label htmlFor="whatsapp">WhatsApp</Label>
+                     <Input
+                       id="whatsapp"
+                       value={siteData.whatsapp}
+                       onChange={(e) => updateData('whatsapp', e.target.value)}
+                     />
+                   </div>
+                 </div>
+
+                 <div className="space-y-2">
+                   <Label htmlFor="email">Email</Label>
+                   <Input
+                     id="email"
+                     value={siteData.email}
+                     onChange={(e) => updateData('email', e.target.value)}
+                   />
+                 </div>
+
+                 <div className="space-y-2">
+                   <Label htmlFor="address">Endereço</Label>
+                   <Textarea
+                     id="address"
+                     value={siteData.address}
+                     onChange={(e) => updateData('address', e.target.value)}
+                     rows={3}
+                   />
+                 </div>
+               </CardContent>
+             </Card>
+
+             <Card>
+               <CardHeader>
+                 <CardTitle>Horários de Funcionamento</CardTitle>
+               </CardHeader>
+               <CardContent className="space-y-4">
+                 <div className="space-y-2">
+                   <Label htmlFor="weekdaysHours">Segunda a Sexta</Label>
+                   <Input
+                     id="weekdaysHours"
+                     value={siteData.weekdaysHours}
+                     onChange={(e) => updateData('weekdaysHours', e.target.value)}
+                     placeholder="Ex: 07h às 17h"
+                   />
+                 </div>
+
+                 <div className="space-y-2">
+                   <Label htmlFor="saturdayHours">Sábado</Label>
+                   <Input
+                     id="saturdayHours"
+                     value={siteData.saturdayHours}
+                     onChange={(e) => updateData('saturdayHours', e.target.value)}
+                     placeholder="Ex: 07h às 11h"
+                   />
+                 </div>
+
+                 <div className="space-y-2">
+                   <Label htmlFor="sundayHours">Domingo</Label>
+                   <Input
+                     id="sundayHours"
+                     value={siteData.sundayHours}
+                     onChange={(e) => updateData('sundayHours', e.target.value)}
+                     placeholder="Ex: Fechado"
+                   />
+                 </div>
+               </CardContent>
+             </Card>
+
+             <Card>
+               <CardHeader>
+                 <CardTitle>Redes Sociais</CardTitle>
+               </CardHeader>
+               <CardContent className="space-y-4">
+                 <div className="space-y-2">
+                   <Label htmlFor="instagram">Instagram</Label>
+                   <Input
+                     id="instagram"
+                     value={siteData.instagram}
+                     onChange={(e) => updateData('instagram', e.target.value)}
+                     placeholder="https://instagram.com/seu_perfil"
+                   />
+                 </div>
+
+                 <div className="space-y-2">
+                   <Label htmlFor="facebook">Facebook</Label>
+                   <Input
+                     id="facebook"
+                     value={siteData.facebook}
+                     onChange={(e) => updateData('facebook', e.target.value)}
+                     placeholder="https://facebook.com/sua_pagina"
+                   />
+                 </div>
+               </CardContent>
+             </Card>
+           </TabsContent>
+
+          {/* Services & Convenios */}
+          <TabsContent value="services" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    Serviços
+                    <Button onClick={addService} size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {siteData.services.map((service, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 border rounded">
+                        <span>{service}</span>
+                        <Button
+                          onClick={() => removeService(index)}
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    Convênios
+                    <Button onClick={addConvenio} size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {siteData.convenios.map((convenio, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 border rounded">
+                        <span>{convenio}</span>
+                        <Button
+                          onClick={() => removeConvenio(index)}
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
+
+        {/* Save Button */}
+        <div className="flex justify-end mt-6">
+          <Button onClick={handleSave} size="lg">
+            <Save className="h-4 w-4 mr-2" />
+            Salvar Alterações
+          </Button>
+        </div>
+
+        {/* Info */}
+        <Alert className="mt-6">
+          <Shield className="h-4 w-4" />
+          <AlertDescription>
+            Dashboard simplificado e funcional. Edite o conteúdo do site e clique em "Salvar Alterações" para aplicar as mudanças.
+          </AlertDescription>
+        </Alert>
       </div>
     </div>
   );
 };
 
-export default AdminDashboard;
+export default AdminDashboard; 

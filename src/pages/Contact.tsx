@@ -1,7 +1,9 @@
 
+import { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Phone, Clock, MessageCircle, Mail, Navigation } from 'lucide-react';
+import { sanitizeUrl } from '@/utils/sanitizer';
 
 interface SiteDataForContact {
   phone: string;
@@ -19,6 +21,10 @@ interface ContactProps {
 }
 
 const Contact = ({ siteData }: ContactProps) => {
+  // Scroll para o topo quando a página carrega
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
   const formatPhoneNumber = (phone: string) => (phone || '').replace(/\D/g, '');
 
   const formatWhatsAppLink = (whatsapp: string, message?: string) => {
@@ -29,13 +35,19 @@ const Contact = ({ siteData }: ContactProps) => {
   
   const openMaps = () => {
     const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(siteData.address || '')}`;
-    window.open(url, '_blank');
+    const sanitizedUrl = sanitizeUrl(url);
+    if (sanitizedUrl) {
+      window.open(sanitizedUrl, '_blank', 'noopener,noreferrer');
+    }
   };
 
   const openWhatsApp = (message?: string) => {
     const defaultMessage = "Olá! Gostaria de mais informações sobre os serviços do laboratório Arantes.";
     const url = formatWhatsAppLink(siteData.whatsapp || '', message || defaultMessage);
-    window.open(url, '_blank');
+    const sanitizedUrl = sanitizeUrl(url);
+    if (sanitizedUrl) {
+      window.open(sanitizedUrl, '_blank', 'noopener,noreferrer');
+    }
   };
   
   // Prepare address display (simple split by comma for now, can be enhanced)
@@ -45,11 +57,11 @@ const Contact = ({ siteData }: ContactProps) => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-50 via-white to-blue-50 py-20">
+      <section className="bg-gradient-to-br from-primary-teal-50 via-white to-primary-teal-50 py-20">
         <div className="container mx-auto px-4 lg:px-6">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              Entre em <span className="text-blue-600">Contato</span>
+              Entre em <span className="text-primary-teal-600">Contato</span>
             </h1>
             <p className="text-xl text-gray-600 leading-relaxed">
               Estamos prontos para atendê-lo. Entre em contato conosco para agendar 
@@ -80,7 +92,7 @@ const Contact = ({ siteData }: ContactProps) => {
                 <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary-teal-500 to-primary-teal-600 rounded-lg flex items-center justify-center flex-shrink-0">
                         <MapPin className="h-6 w-6 text-white" />
                       </div>
                       <div className="flex-1">
@@ -95,7 +107,7 @@ const Contact = ({ siteData }: ContactProps) => {
                           onClick={openMaps}
                           variant="outline" 
                           size="sm" 
-                          className="mt-3 border-blue-200 text-blue-700 hover:bg-blue-50"
+                          className="mt-3 border-primary-teal-200 text-primary-teal-700 hover:bg-primary-teal-50"
                         >
                           <Navigation className="h-4 w-4 mr-2" />
                           Ver no Mapa
@@ -193,19 +205,26 @@ const Contact = ({ siteData }: ContactProps) => {
                 </p>
               </div>
 
-              {/* Google Maps Embed */}
-              <div className="relative h-96 bg-gray-200 rounded-lg overflow-hidden shadow-lg">
-                <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3654.5!2d-50.123456!3d-19.654321!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTnCsDM5JzE1LjYiUyA1MMKwMDcnMjQuNCJX!5e0!3m2!1spt-BR!2sbr!4v1234567890123"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Localização do Laboratório Arantes"
-                />
-                <div className="absolute inset-0 bg-blue-600 opacity-20 pointer-events-none"></div>
+              {/* Mapa Simples */}
+              <div className="relative h-96 bg-gradient-to-br from-primary-teal-50 to-primary-teal-100 rounded-lg overflow-hidden shadow-lg border-2 border-primary-teal-200">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center p-8">
+                    <MapPin className="h-16 w-16 text-primary-teal-600 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      Laboratório Arantes
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      {siteData.address}
+                    </p>
+                    <Button 
+                      onClick={openMaps}
+                      className="bg-primary-teal-600 hover:bg-primary-teal-700"
+                    >
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Abrir no Google Maps
+                    </Button>
+                  </div>
+                </div>
               </div>
 
               {/* Pontos de Referência */}
@@ -214,19 +233,19 @@ const Contact = ({ siteData }: ContactProps) => {
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Pontos de Referência</h3>
                   <ul className="space-y-2 text-gray-600">
                     <li className="flex items-center">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                      <div className="w-2 h-2 bg-primary-teal-500 rounded-full mr-3"></div>
                       Próximo ao Centro da cidade
                     </li>
                     <li className="flex items-center">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                      <div className="w-2 h-2 bg-primary-teal-500 rounded-full mr-3"></div>
                       Fácil acesso de carro e transporte público
                     </li>
                     <li className="flex items-center">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                      <div className="w-2 h-2 bg-primary-teal-500 rounded-full mr-3"></div>
                       Estacionamento disponível
                     </li>
                     <li className="flex items-center">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                      <div className="w-2 h-2 bg-primary-teal-500 rounded-full mr-3"></div>
                       Ambiente acessível para pessoas com deficiência
                     </li>
                   </ul>
@@ -252,7 +271,7 @@ const Contact = ({ siteData }: ContactProps) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow text-center">
               <CardContent className="p-8">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-primary-teal-500 to-primary-teal-600 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Phone className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Por Telefone</h3>
@@ -260,7 +279,7 @@ const Contact = ({ siteData }: ContactProps) => {
                   Ligue para nosso atendimento e agende seus exames de forma rápida
                 </p>
                 <a href={`tel:${formatPhoneNumber(siteData.phone)}`}>
-                  <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
+                  <Button className="w-full bg-gradient-to-r from-primary-teal-600 to-primary-teal-700 hover:from-primary-teal-700 hover:to-primary-teal-800">
                     {siteData.phone || '(00) 0000-0000'}
                   </Button>
                 </a>
@@ -308,18 +327,18 @@ const Contact = ({ siteData }: ContactProps) => {
       </section>
 
       {/* CTA Final */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-700">
+      <section className="py-20 bg-gradient-to-r from-primary-teal-600 to-primary-teal-700">
         <div className="container mx-auto px-4 lg:px-6 text-center">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
               Estamos Aqui para Ajudar
             </h2>
-            <p className="text-xl text-blue-100 mb-8">
+            <p className="text-xl text-primary-teal-100 mb-8">
               Nossa equipe está pronta para atendê-lo e esclarecer todas as suas dúvidas
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a href={`tel:${formatPhoneNumber(siteData.phone)}`}>
-                <Button size="lg" variant="secondary" className="bg-white text-blue-700 hover:bg-gray-100 text-lg px-8 py-6">
+                <Button size="lg" variant="secondary" className="bg-white text-primary-teal-700 hover:bg-gray-100 text-lg px-8 py-6">
                   Ligar: {siteData.phone || '(00) 0000-0000'}
                 </Button>
               </a>
@@ -327,7 +346,7 @@ const Contact = ({ siteData }: ContactProps) => {
                 onClick={() => openWhatsApp()}
                 size="lg" 
                 variant="outline" 
-                className="border-white text-white hover:bg-white hover:text-blue-700 text-lg px-8 py-6"
+                className="bg-white text-primary-teal-700 hover:bg-gray-100 text-lg px-8 py-6"
               >
                 <MessageCircle className="mr-2 h-5 w-5" />
                 WhatsApp

@@ -1,4 +1,5 @@
 
+import { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Award, Users, Microscope, Heart, Target, Shield } from 'lucide-react';
 
@@ -12,15 +13,19 @@ interface AboutProps {
 }
 
 const About = ({ siteData }: AboutProps) => {
+  // Scroll para o topo quando a página carrega
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-50 via-white to-blue-50 py-20">
+      <section className="bg-gradient-to-br from-primary-teal-50 via-white to-primary-teal-50 py-20">
         <div className="container mx-auto px-4 lg:px-6">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              Sobre o <span className="text-blue-600">Arantes</span>
+              Sobre o <span className="text-primary-teal-600">Arantes</span>
             </h1>
             <p className="text-xl text-gray-600 leading-relaxed">
               {siteData.aboutText || 'Texto padrão sobre nós.'}
@@ -54,10 +59,10 @@ const About = ({ siteData }: AboutProps) => {
             </div>
             
             <div className="relative">
-              <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl p-8 aspect-square flex items-center justify-center">
-                <Microscope className="h-32 w-32 text-blue-600" />
+              <div className="bg-gradient-to-br from-primary-teal-100 to-primary-teal-200 rounded-2xl p-8 aspect-square flex items-center justify-center">
+                <Microscope className="h-32 w-32 text-primary-teal-600" />
               </div>
-              <div className="absolute -top-4 -right-4 w-32 h-32 bg-blue-200 rounded-full opacity-20"></div>
+              <div className="absolute -top-4 -right-4 w-32 h-32 bg-primary-teal-200 rounded-full opacity-20"></div>
               <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-green-200 rounded-full opacity-20"></div>
             </div>
           </div>
@@ -79,7 +84,7 @@ const About = ({ siteData }: AboutProps) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
               <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-primary-teal-500 to-primary-teal-600 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Target className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Missão</h3>
@@ -133,7 +138,7 @@ const About = ({ siteData }: AboutProps) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="space-y-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary-teal-500 to-primary-teal-600 rounded-lg flex items-center justify-center">
                 <Shield className="h-6 w-6 text-white" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900">Qualidade Certificada</h3>
@@ -202,13 +207,13 @@ const About = ({ siteData }: AboutProps) => {
       </section>
 
       {/* Números que Impressionam */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-700">
+      <section className="py-20 bg-gradient-to-r from-primary-teal-600 to-primary-teal-700">
         <div className="container mx-auto px-4 lg:px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
               Números que Impressionam
             </h2>
-            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
+            <p className="text-xl text-primary-teal-100 max-w-3xl mx-auto">
               Nossa trajetória de excelência em números
             </p>
           </div>
@@ -216,19 +221,19 @@ const About = ({ siteData }: AboutProps) => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
               <p className="text-4xl lg:text-5xl font-bold text-white mb-2">15+</p>
-              <p className="text-blue-100">Anos de Experiência</p>
+              <p className="text-primary-teal-100">Anos de Experiência</p>
             </div>
             <div className="text-center">
               <p className="text-4xl lg:text-5xl font-bold text-white mb-2">500+</p>
-              <p className="text-blue-100">Tipos de Exames</p>
+              <p className="text-primary-teal-100">Tipos de Exames</p>
             </div>
             <div className="text-center">
               <p className="text-4xl lg:text-5xl font-bold text-white mb-2">10K+</p>
-              <p className="text-blue-100">Pacientes Atendidos</p>
+              <p className="text-primary-teal-100">Pacientes Atendidos</p>
             </div>
             <div className="text-center">
               <p className="text-4xl lg:text-5xl font-bold text-white mb-2">99%</p>
-              <p className="text-blue-100">Satisfação</p>
+              <p className="text-primary-teal-100">Satisfação</p>
             </div>
           </div>
         </div>

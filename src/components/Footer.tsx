@@ -34,12 +34,12 @@ const Footer = ({ siteData }: FooterProps) => {
           {/* Logo e Descrição */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary-teal-500 to-primary-teal-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold">A</span>
               </div>
               <div>
                 <h3 className="font-bold">Arantes</h3>
-                <p className="text-sm text-blue-400">Medicina Laboratorial</p>
+                <p className="text-sm text-primary-teal-400">Medicina Laboratorial</p>
               </div>
             </div>
             <p className="text-gray-300 text-sm leading-relaxed">
@@ -49,21 +49,21 @@ const Footer = ({ siteData }: FooterProps) => {
 
           {/* Links Rápidos */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-blue-400">Links Rápidos</h4>
+            <h4 className="font-semibold text-primary-teal-400">Links Rápidos</h4>
             <nav className="flex flex-col space-y-2">
-              <Link to="/" className="text-gray-300 hover:text-blue-400 transition-colors text-sm">
+              <Link to="/" className="text-gray-300 hover:text-primary-teal-400 transition-colors text-sm">
                 Início
               </Link>
-              <Link to="/sobre" className="text-gray-300 hover:text-blue-400 transition-colors text-sm">
+              <Link to="/sobre" className="text-gray-300 hover:text-primary-teal-400 transition-colors text-sm">
                 Sobre Nós
               </Link>
-              <Link to="/servicos" className="text-gray-300 hover:text-blue-400 transition-colors text-sm">
+              <Link to="/servicos" className="text-gray-300 hover:text-primary-teal-400 transition-colors text-sm">
                 Serviços
               </Link>
-              <Link to="/resultados" className="text-gray-300 hover:text-blue-400 transition-colors text-sm">
+              <Link to="/resultados" className="text-gray-300 hover:text-primary-teal-400 transition-colors text-sm">
                 Resultados Online
               </Link>
-              <Link to="/contato" className="text-gray-300 hover:text-blue-400 transition-colors text-sm">
+              <Link to="/contato" className="text-gray-300 hover:text-primary-teal-400 transition-colors text-sm">
                 Contato
               </Link>
             </nav>
@@ -71,10 +71,10 @@ const Footer = ({ siteData }: FooterProps) => {
 
           {/* Contato */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-blue-400">Contato</h4>
+            <h4 className="font-semibold text-primary-teal-400">Contato</h4>
             <div className="space-y-3">
               <div className="flex items-start space-x-3">
-                <MapPin className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                <MapPin className="h-4 w-4 text-primary-teal-400 mt-0.5 flex-shrink-0" />
                 <div className="text-gray-300 text-sm">
                   {addressParts.map((part, index) => (
                     <span key={index}>{part}<br /></span>
@@ -83,10 +83,10 @@ const Footer = ({ siteData }: FooterProps) => {
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <Phone className="h-4 w-4 text-blue-400 flex-shrink-0" />
+                <Phone className="h-4 w-4 text-primary-teal-400 flex-shrink-0" />
                 <a 
                   href={`tel:${formatPhoneNumber(siteData.phone)}`} 
-                  className="text-gray-300 hover:text-blue-400 transition-colors text-sm"
+                  className="text-gray-300 hover:text-primary-teal-400 transition-colors text-sm"
                 >
                   {siteData.phone || '(00) 0000-0000'}
                 </a>
@@ -96,10 +96,10 @@ const Footer = ({ siteData }: FooterProps) => {
 
           {/* Horários */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-blue-400">Horários</h4>
+            <h4 className="font-semibold text-primary-teal-400">Horários</h4>
             <div className="space-y-2">
               <div className="flex items-start space-x-3">
-                <Clock className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                <Clock className="h-4 w-4 text-primary-teal-400 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-gray-300">
                   <p><strong>Segunda a Sexta:</strong></p>
                   <p>{(siteData.workingHours?.weekdays || '00h às 00h').replace('Segunda a Sexta: ', '')}</p>
@@ -111,13 +111,13 @@ const Footer = ({ siteData }: FooterProps) => {
             
             {/* Redes Sociais */}
             <div className="pt-4">
-              <p className="text-sm font-medium text-blue-400 mb-2">Siga-nos</p>
+              <p className="text-sm font-medium text-primary-teal-400 mb-2">Siga-nos</p>
               <div className="flex space-x-3">
                 <a 
                   href={siteData.socialMedia?.instagram || '#'} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="text-gray-400 hover:text-blue-400 transition-colors"
+                  className="text-gray-400 hover:text-primary-teal-400 transition-colors"
                   aria-label="Instagram"
                 >
                   <Instagram className="h-5 w-5" />
@@ -126,7 +126,7 @@ const Footer = ({ siteData }: FooterProps) => {
                   href={siteData.socialMedia?.facebook || '#'} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="text-gray-400 hover:text-blue-400 transition-colors"
+                  className="text-gray-400 hover:text-primary-teal-400 transition-colors"
                   aria-label="Facebook"
                 >
                   <Facebook className="h-5 w-5" />

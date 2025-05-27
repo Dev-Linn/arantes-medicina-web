@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { MessageCircle, X } from 'lucide-react';
+import { sanitizeUrl } from '@/utils/sanitizer';
 
 interface SiteDataForWhatsApp {
   whatsapp: string;
@@ -33,7 +34,10 @@ const WhatsAppFloat = ({ siteData }: WhatsAppFloatProps) => {
   const handleWhatsAppClick = () => {
     const message = "Olá! Gostaria de mais informações sobre os serviços do laboratório Arantes.";
     const url = formatWhatsAppLink(siteData.whatsapp, message);
-    window.open(url, '_blank');
+    const sanitizedUrl = sanitizeUrl(url);
+    if (sanitizedUrl) {
+      window.open(sanitizedUrl, '_blank', 'noopener,noreferrer');
+    }
   };
 
   if (!isVisible) return null;

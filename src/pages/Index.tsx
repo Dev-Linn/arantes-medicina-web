@@ -1,8 +1,15 @@
-
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Shield, Clock, MapPin, Users, Award, Microscope } from 'lucide-react';
+import { ArrowRight, Shield, Clock, MapPin, Users, Award, Microscope, Phone, MessageCircle, ChevronDown } from 'lucide-react';
+import { sanitizeHtml } from '@/utils/sanitizer';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 // Define the expected structure of siteData for clarity and type safety
 interface SiteData {
@@ -29,21 +36,26 @@ interface IndexProps {
 
 const Index = ({ siteData }: IndexProps) => {
   console.log('Index.tsx received siteData prop:', siteData);
-  // Helper to format phone for tel: links
+  
+  // Scroll para o topo quando a página carrega
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
+  // Helper to format phone for tel: links
   const formatPhoneNumber = (phone: string) => (phone || '').replace(/\D/g, '');
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-50 via-white to-blue-50 py-20 lg:py-32">
+      <section className="relative bg-gradient-to-br from-primary-teal-50 via-white to-primary-teal-50 py-20 lg:py-32">
         <div className="container mx-auto px-4 lg:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div>
                 <h1 
                   className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight"
-                  dangerouslySetInnerHTML={{ __html: siteData.homeTitle || '' }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(siteData.homeTitle || '') }}
                 />
                 <p className="text-xl text-gray-600 mt-6 leading-relaxed">
                   {siteData.homeSubtitle || 'Subtítulo padrão.'}
@@ -52,29 +64,67 @@ const Index = ({ siteData }: IndexProps) => {
               
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/resultados">
-                  <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-lg px-8 py-6">
+                  <Button size="lg" className="bg-gradient-to-r from-primary-teal-600 to-primary-teal-700 hover:from-primary-teal-700 hover:to-primary-teal-800 text-lg px-8 py-6">
                     Acessar Resultados
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
-                <a href={`tel:${formatPhoneNumber(siteData.phone)}`}>
-                  <Button variant="outline" size="lg" className="border-blue-200 text-blue-700 hover:bg-blue-50 text-lg px-8 py-6">
-                    Agendar Exame
-                  </Button>
-                </a>
+                
+                {/* Dropdown para Agendar Exame */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="lg" className="border-primary-teal-200 text-primary-teal-700 hover:bg-primary-teal-50 text-lg px-8 py-6">
+                      Agendar Exame
+                      <ChevronDown className="ml-2 h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-64 p-2" align="start">
+                    <DropdownMenuItem asChild>
+                      <a 
+                        href={`tel:${formatPhoneNumber(siteData.phone)}`}
+                        className="flex items-center space-x-3 p-3 rounded-lg hover:bg-primary-teal-50 transition-colors cursor-pointer"
+                      >
+                        <div className="w-10 h-10 bg-gradient-to-br from-primary-teal-500 to-primary-teal-600 rounded-full flex items-center justify-center">
+                          <Phone className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-gray-900">Ligar Agora</p>
+                          <p className="text-sm text-gray-600">{siteData.phone || '(00) 0000-0000'}</p>
+                        </div>
+                      </a>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem asChild>
+                      <a 
+                        href={`https://wa.me/${formatPhoneNumber(siteData.whatsapp || siteData.phone)}?text=Olá! Gostaria de agendar um exame.`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center space-x-3 p-3 rounded-lg hover:bg-green-50 transition-colors cursor-pointer"
+                      >
+                        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                          <MessageCircle className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-gray-900">WhatsApp</p>
+                          <p className="text-sm text-gray-600">Enviar mensagem</p>
+                        </div>
+                      </a>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               <div className="flex items-center space-x-8 pt-4">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-blue-600">15+</p>
+                  <p className="text-3xl font-bold text-primary-teal-600">15+</p>
                   <p className="text-sm text-gray-600">Anos de Experiência</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-blue-600">500+</p>
+                  <p className="text-3xl font-bold text-primary-teal-600">500+</p>
                   <p className="text-sm text-gray-600">Tipos de Exames</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-blue-600">24h</p>
+                  <p className="text-3xl font-bold text-primary-teal-600">24h</p>
                   <p className="text-sm text-gray-600">Resultados Online</p>
                 </div>
               </div>
@@ -82,8 +132,8 @@ const Index = ({ siteData }: IndexProps) => {
 
             <div className="relative">
               <div className="relative z-10 bg-white rounded-2xl shadow-2xl p-8">
-                <div className="aspect-square bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center">
-                  <Microscope className="h-24 w-24 text-blue-600" />
+                              <div className="aspect-square bg-gradient-to-br from-primary-teal-100 to-primary-teal-200 rounded-xl flex items-center justify-center">
+                <Microscope className="h-24 w-24 text-primary-teal-600" />
                 </div>
                 <div className="mt-6 space-y-4">
                   <h3 className="text-xl font-semibold text-gray-900">Tecnologia Avançada</h3>
@@ -92,7 +142,7 @@ const Index = ({ siteData }: IndexProps) => {
                   </p>
                 </div>
               </div>
-              <div className="absolute -top-4 -right-4 w-32 h-32 bg-blue-200 rounded-full opacity-20"></div>
+                              <div className="absolute -top-4 -right-4 w-32 h-32 bg-primary-teal-200 rounded-full opacity-20"></div>
               <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-green-200 rounded-full opacity-20"></div>
             </div>
           </div>
@@ -122,7 +172,7 @@ const Index = ({ siteData }: IndexProps) => {
                 ];
                 const IconComponent = servicePreviewStaticData[index]?.icon || Users; // Fallback icon
                 const description = servicePreviewStaticData[index]?.description || 'Descrição do serviço.';
-                const iconColorClass = ['from-blue-500 to-blue-600', 'from-green-500 to-green-600', 'from-purple-500 to-purple-600'][index] || 'from-gray-500 to-gray-600';
+                const iconColorClass = ['from-primary-teal-500 to-primary-teal-600', 'from-green-500 to-green-600', 'from-purple-500 to-purple-600'][index] || 'from-gray-500 to-gray-600';
 
                 return (
                   <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
@@ -149,7 +199,7 @@ const Index = ({ siteData }: IndexProps) => {
 
           <div className="text-center mt-12">
             <Link to="/servicos">
-              <Button size="lg" variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">
+              <Button size="lg" variant="outline" className="border-primary-teal-200 text-primary-teal-700 hover:bg-primary-teal-50">
                 Ver Todos os Serviços
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -172,7 +222,7 @@ const Index = ({ siteData }: IndexProps) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center space-y-4">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto">
+              <div className="w-20 h-20 bg-gradient-to-br from-primary-teal-500 to-primary-teal-600 rounded-full flex items-center justify-center mx-auto">
                 <Award className="h-10 w-10 text-white" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900">Qualidade Certificada</h3>
@@ -207,23 +257,23 @@ const Index = ({ siteData }: IndexProps) => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-700">
+      <section className="py-20 bg-gradient-to-r from-primary-teal-600 to-primary-teal-700">
         <div className="container mx-auto px-4 lg:px-6 text-center">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
               Pronto para cuidar da sua saúde?
             </h2>
-            <p className="text-xl text-blue-100 mb-8">
+            <p className="text-xl text-primary-teal-100 mb-8">
               Agende seus exames ou acesse seus resultados de forma rápida e segura
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a href={`tel:${formatPhoneNumber(siteData.phone)}`}>
-                <Button size="lg" variant="secondary" className="bg-white text-blue-700 hover:bg-gray-100 text-lg px-8 py-6">
+                <Button size="lg" variant="secondary" className="bg-white text-primary-teal-700 hover:bg-gray-100 text-lg px-8 py-6">
                   Ligar Agora: {siteData.phone || '(00) 0000-0000'}
                 </Button>
               </a>
               <Link to="/resultados">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-700 text-lg px-8 py-6">
+                <Button size="lg" variant="outline" className="bg-white text-primary-teal-700 hover:bg-gray-100 text-lg px-8 py-6">
                   Acessar Resultados
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>

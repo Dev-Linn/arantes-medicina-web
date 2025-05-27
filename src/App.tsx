@@ -20,21 +20,22 @@ import WhatsAppFloat from "./components/WhatsAppFloat";
 const queryClient = new QueryClient();
 
 const initialSiteDataObject = {
-  phone: '(00) 0000-0000',
-  whatsapp: '00000000000',
-  address: 'Endereço Padrão, N° – Bairro, Cidade – UF',
+  phone: '(34) 3251-2055',
+  whatsapp: '(34) 93251-2055',
+  address: 'Avenida Joaquim Ribeiro de Gouveia, 1969 – Bairro Amoreiras, Santa Vitória – MG',
   workingHours: {
-    weekdays: 'Seg - Sex: 00h às 00h',
-    saturday: 'Sáb: 00h às 00h',
+    weekdays: 'Segunda a Sexta: 07h às 17h',
+    saturday: 'Sábado: 07h às 11h',
   },
-  services: ['Serviço Padrão 1', 'Serviço Padrão 2', 'Serviço Padrão 3'],
+  services: ['Análises Clínicas Gerais', 'Exames de Sangue', 'Exames de Urina', 'Exames Hormonais', 'Exames Cardiológicos', 'Check-up Completo'],
+  convenios: ['SUS - Sistema Único de Saúde', 'Unimed', 'Bradesco Saúde', 'Amil', 'SulAmérica', 'Particular'],
   socialMedia: {
-    instagram: '#',
-    facebook: '#',
+    instagram: 'https://instagram.com/aranteslaboratorio',
+    facebook: 'https://facebook.com/aranteslaboratorio',
   },
-  homeTitle: 'Título Padrão<span class="text-blue-600 block">Destaque Padrão</span>',
-  homeSubtitle: 'Subtítulo padrão da página inicial.',
-  aboutText: 'Texto padrão sobre nós.',
+  homeTitle: 'Arantes Medicina Laboratorial<span class="text-primary-teal-600 block">Tradição e Qualidade</span>',
+  homeSubtitle: 'Excelência em análises clínicas com mais de 30 anos de tradição em Santa Vitória',
+  aboutText: 'O Laboratório Arantes é referência em análises clínicas na região, oferecendo serviços de alta qualidade com equipamentos modernos e profissionais especializados.',
 };
 
 const App = () => {
@@ -58,6 +59,7 @@ const App = () => {
             ...(parsedData.socialMedia || {}),
           },
           services: parsedData.services && parsedData.services.length > 0 ? parsedData.services : initialSiteDataObject.services,
+          convenios: parsedData.convenios && parsedData.convenios.length > 0 ? parsedData.convenios : initialSiteDataObject.convenios,
         };
         setSiteData(mergedData);
         console.log('App.tsx: siteData loaded/updated:', mergedData);
