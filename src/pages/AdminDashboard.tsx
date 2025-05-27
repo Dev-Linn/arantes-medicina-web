@@ -317,7 +317,18 @@ const AdminDashboard = () => {
                           setSiteData(prev => ({...prev, services: newServices}));
                         }}
                       />
-                      <Button variant="outline" size="sm" className="text-red-600">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-red-600"
+                        onClick={() => {
+                          console.log('Attempting to remove service at index:', index);
+                          console.log('Current services before removal:', siteData.services);
+                          const updatedServices = siteData.services.filter((_, i) => i !== index);
+                          console.log('Services after filtering (before setState):', updatedServices);
+                          setSiteData(prev => ({...prev, services: updatedServices}));
+                        }}
+                      >
                         Remover
                       </Button>
                     </div>
