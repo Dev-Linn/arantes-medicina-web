@@ -42,3 +42,36 @@ export const initialSiteDataObject = {
     'Particular'
   ]
 };
+
+// Site metadata
+export const siteConfig = {
+  name: 'Arantes Medicina Laboratorial',
+  description: 'Laboratório de análises clínicas em Santa Vitória-MG',
+  url: 'https://aranteslab.com.br',
+  ogImage: '/lovable-uploads/arantes-lab-og.jpg',
+  links: {
+    results: 'https://www.resultados.com.br/clientes/LABARANTES/LABARANTES.aspx'
+  }
+};
+
+// Form validation settings
+export const validationConfig = {
+  maxLengths: {
+    title: 200,
+    subtitle: 200,
+    text: 1000,
+    address: 200,
+    name: 100,
+    email: 100,
+    phone: 20
+  },
+  minLengths: {
+    title: 1,
+    subtitle: 1,
+    text: 10,
+    address: 10,
+    name: 1,
+    email: 5,
+    phone: 8
+  }
+};

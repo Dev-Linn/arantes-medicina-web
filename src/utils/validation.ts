@@ -1,26 +1,58 @@
 import { z } from 'zod';
 
-// Schema para validação de dados do site
+// Phone number regex pattern
+const PHONE_PATTERN = /^\(\d{2}\)\s\d{4,5}-\d{4}$/;
+const URL_PATTERN = /^https?:\/\/.+/;
+
+// Schema for working hours
+const WorkingHoursSchema = z.object({
+  weekdays: z.string()
+    .min(1, 'Horário de segunda a sexta é obrigatório')
+    .max(50, 'Horário muito longo'),
+  saturday: z.string()
+    .min(1, 'Horário de sábado é obrigatório')
+    .max(50, 'Horário muito longo')
+});
+
+// Schema for social media
+const SocialMediaSchema = z.object({
+  instagram: z.string()
+    .regex(URL_PATTERN, 'URL do Instagram inválida')
+    .or(z.string().length(0)),
+  facebook: z.string()
+    .regex(URL_PATTERN, 'URL do Facebook inválida')
+    .or(z.string().length(0))
+});
+
+// Main site data schema
 export const SiteDataSchema = z.object({
+  // Contact Information
   phone: z.string()
-    .regex(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, 'Formato de telefone inválido')
-    .max(20, 'Telefone muito longo'),
+    .regex(PHONE_PATTERN, 'Formato de telefone inválido: (XX) XXXX-XXXX')
+    .min(1, 'Telefone é obrigatório'),
   
   whatsapp: z.string()
-    .regex(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, 'Formato de WhatsApp inválido')
-    .max(20, 'WhatsApp muito longo'),
+    .regex(PHONE_PATTERN, 'Formato de WhatsApp inválido: (XX) XXXXX-XXXX')
+    .min(1, 'WhatsApp é obrigatório'),
   
   email: z.string()
     .email('Email inválido')
-    .max(100, 'Email muito longo'),
+    .min(1, 'Email é obrigatório'),
   
   address: z.string()
     .min(10, 'Endereço muito curto')
     .max(200, 'Endereço muito longo'),
   
+  // Working Hours
+  workingHours: WorkingHoursSchema,
+  
+  // Social Media
+  socialMedia: SocialMediaSchema,
+  
+  // Content
   homeTitle: z.string()
-    .min(1, 'Título é obrigatório')
-    .max(100, 'Título muito longo'),
+    .min(1, 'Título principal é obrigatório')
+    .max(200, 'Título muito longo'),
   
   homeSubtitle: z.string()
     .min(1, 'Subtítulo é obrigatório')
@@ -30,76 +62,47 @@ export const SiteDataSchema = z.object({
     .min(10, 'Texto sobre muito curto')
     .max(1000, 'Texto sobre muito longo'),
   
-  services: z.array(z.string().min(1).max(100))
-    .min(1, 'Pelo menos um serviço é obrigatório')
-    .max(20, 'Muitos serviços'),
+  missionText: z.string()
+    .min(10, 'Texto da missão muito curto')
+    .max(500, 'Texto da missão muito longo'),
   
-  convenios: z.array(z.string().min(1).max(100))
-    .min(1, 'Pelo menos um convênio é obrigatório')
-    .max(20, 'Muitos convênios'),
+  // Lists
+  services: z.array(
+    z.string()
+      .min(1, 'Nome do serviço não pode estar vazio')
+      .max(100, 'Nome do serviço muito longo')
+  ).min(1, 'Adicione pelo menos um serviço'),
   
-  workingHours: z.object({
-    weekdays: z.string().min(1).max(50),
-    saturday: z.string().min(1).max(50)
-  }),
-  
-  socialMedia: z.object({
-    instagram: z.string().url('URL do Instagram inválida').optional().or(z.literal('')),
-    facebook: z.string().url('URL do Facebook inválida').optional().or(z.literal(''))
-  })
+  convenios: z.array(
+    z.string()
+      .min(1, 'Nome do convênio não pode estar vazio')
+      .max(100, 'Nome do convênio muito longo')
+  ).min(1, 'Adicione pelo menos um convênio')
 });
 
-// Schema para validação de credenciais de login
-export const LoginCredentialsSchema = z.object({
-  email: z.string()
-    .email('Email inválido')
-    .min(5, 'Email muito curto')
-    .max(100, 'Email muito longo'),
-  
-  password: z.string()
-    .min(8, 'Senha deve ter pelo menos 8 caracteres')
-    .max(128, 'Senha muito longa')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, 
-           'Senha deve conter pelo menos: 1 minúscula, 1 maiúscula, 1 número e 1 caractere especial')
-});
-
-// Schema para validação de URLs
-export const UrlSchema = z.string()
-  .url('URL inválida')
-  .refine((url) => {
-    const allowedProtocols = ['http:', 'https:'];
-    try {
-      const urlObj = new URL(url);
-      return allowedProtocols.includes(urlObj.protocol);
-    } catch {
-      return false;
-    }
-  }, 'Protocolo não permitido');
-
-// Schema para validação de telefone
-export const PhoneSchema = z.string()
-  .regex(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, 'Formato: (XX) XXXXX-XXXX')
-  .or(z.string().regex(/^\d{10,11}$/, 'Apenas números: XXXXXXXXXXX'));
-
-// Função para validar dados do site
+// Function to validate site data
 export const validateSiteData = (data: unknown) => {
   try {
+    const validatedData = SiteDataSchema.parse(data);
     return {
       success: true,
-      data: SiteDataSchema.parse(data),
+      data: validatedData,
       errors: null
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const formattedErrors = error.errors.map(err => ({
+        field: err.path.join('.'),
+        message: err.message
+      }));
+      
       return {
         success: false,
         data: null,
-        errors: error.errors.map(err => ({
-          field: err.path.join('.'),
-          message: err.message
-        }))
+        errors: formattedErrors
       };
     }
+    
     return {
       success: false,
       data: null,
@@ -108,69 +111,24 @@ export const validateSiteData = (data: unknown) => {
   }
 };
 
-// Função para validar credenciais de login
-export const validateLoginCredentials = (data: unknown) => {
+// Helper function to format phone number
+export const formatPhoneNumber = (phone: string): string => {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 11) {
+    return `(${digits.slice(0,2)}) ${digits.slice(2,7)}-${digits.slice(7)}`;
+  }
+  if (digits.length === 10) {
+    return `(${digits.slice(0,2)}) ${digits.slice(2,6)}-${digits.slice(6)}`;
+  }
+  return phone;
+};
+
+// Helper function to validate URL
+export const validateUrl = (url: string): boolean => {
   try {
-    return {
-      success: true,
-      data: LoginCredentialsSchema.parse(data),
-      errors: null
-    };
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return {
-        success: false,
-        data: null,
-        errors: error.errors.map(err => ({
-          field: err.path.join('.'),
-          message: err.message
-        }))
-      };
-    }
-    return {
-      success: false,
-      data: null,
-      errors: [{ field: 'unknown', message: 'Erro de validação desconhecido' }]
-    };
+    new URL(url);
+    return URL_PATTERN.test(url);
+  } catch {
+    return false;
   }
 };
-
-// Função para sanitizar e validar entrada de texto
-export const sanitizeAndValidateText = (
-  text: string, 
-  minLength: number = 1, 
-  maxLength: number = 1000
-): { isValid: boolean; sanitized: string; error?: string } => {
-  if (typeof text !== 'string') {
-    return { isValid: false, sanitized: '', error: 'Entrada deve ser texto' };
-  }
-  
-  // Remover caracteres perigosos
-  const sanitized = text
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove scripts
-    .replace(/javascript:/gi, '') // Remove javascript:
-    .replace(/on\w+\s*=/gi, '') // Remove event handlers
-    .trim();
-  
-  if (sanitized.length < minLength) {
-    return { isValid: false, sanitized, error: `Mínimo ${minLength} caracteres` };
-  }
-  
-  if (sanitized.length > maxLength) {
-    return { isValid: false, sanitized, error: `Máximo ${maxLength} caracteres` };
-  }
-  
-  return { isValid: true, sanitized };
-};
-
-// Função para validar formato de telefone brasileiro
-export const validateBrazilianPhone = (phone: string): boolean => {
-  const phoneRegex = /^(?:\+55\s?)?(?:\(\d{2}\)\s?|\d{2}\s?)(?:9\s?)?\d{4}-?\d{4}$/;
-  return phoneRegex.test(phone);
-};
-
-// Função para validar email
-export const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email) && email.length <= 100;
-}; 
